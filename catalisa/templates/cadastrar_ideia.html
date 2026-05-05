@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+
+{% block title %}Cadastro de Ideia{% endblock %}
+
+{% block badge %}🚀 Catalisa - Grupo Flexivel{% endblock %}
+{% block hero_title %}Cadastre sua ideia{% endblock %}
+{% block hero_description %}
+Compartilhe oportunidades de melhoria, inovação e ganhos para o negócio.
+Preencha o formulário com clareza para facilitar a avaliação e a implementação.
+{% endblock %}
+
+{% block section_title %}Formulário de envio{% endblock %}
+{% block section_description %}
+Preencha os campos abaixo com o máximo de informações possível.
+{% endblock %}
+
+{% block alerts %}
+  {% if messages %}
+    <div class="alert alert-success">
+      {% for message in messages %}
+        <p style="margin: 0;">{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">
+      {% for error in form.non_field_errors %}
+        <p style="margin: 0;">{{ error }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <style>
+    .field-group {
+      grid-column: span 12;
+      margin-bottom: 2px;
+    }
+
+    .field-group.half {
+      grid-column: span 6;
+    }
+
+    .field-group.full {
+      grid-column: span 12;
+    }
+
+    .radio-group ul,
+    .checkbox-group ul {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .radio-group li,
+    .checkbox-group li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .radio-group li:hover,
+    .checkbox-group li:hover {
+      border-color: #bfdbfe;
+      background: #f8fbff;
+      transform: translateY(-1px);
+    }
+
+    .radio-group label,
+    .checkbox-group label {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: #1e293b;
+      cursor: pointer;
+      display: inline;
+    }
+
+    .checkbox-group label {
+      font-weight: 500;
+    }
+
+    .radio-group input[type="radio"],
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin: 0;
+      accent-color: var(--primary);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .errorlist {
+      list-style: none;
+      margin: 10px 0 0;
+      padding: 0;
+      color: var(--danger);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .errorlist li {
+      background: var(--danger-soft);
+      border: 1px solid #fecaca;
+      padding: 10px 12px;
+      border-radius: 12px;
+      margin-top: 8px;
+    }
+
+    .field-help {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 768px) {
+      .field-group.half {
+        grid-column: span 12;
+      }
+    }
+  </style>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="section">
+      <div class="section-header">
+        <h3>Informações do autor</h3>
+        <span class="section-tag">Etapa 1</span>
+      </div>
+
+      <div class="grid">
+        <div class="field-group full">
+          {{ form.nome_autor.label_tag }}
+          {{ form.nome_autor }}
+          {{ form.nome_autor.errors }}
+        </div>
+
+        <div class="field-group half">
+          {{ form.unidade_fabril.label_tag }}
+          {{ form.unidade_fabril }}
+          {{ form.unidade_fabril.errors }}
+        </div>
+
+        <div class="field-group half">
+          {{ form.departamento.label_tag }}
+          {{ form.departamento }}
+          {{ form.departamento.errors }}
+        </div>
+
+        <div class="field-group full radio-group">
+          {{ form.forma_de_participacao.label_tag }}
+          {{ form.forma_de_participacao }}
+          {{ form.forma_de_participacao.errors }}
+        </div>
+
+        <div class="field-group full hidden" id="integrantes-equipe-group">
+          {{ form.integrantes_equipe.label_tag }}
+          {{ form.integrantes_equipe }}
+          {{ form.integrantes_equipe.errors }}
+          <div class="field-help">
+            Informe os nomes dos participantes caso a ideia tenha sido construída em grupo.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>Título da ideia</h3>
+        <span class="section-tag">Etapa 2</span>
+      </div>
+
+      <div class="grid">
+        <div class="field-group full">
+          {{ form.titulo.label_tag }}
+          {{ form.titulo }}
+          {{ form.titulo.errors }}
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>O problema</h3>
+        <span class="section-tag">Diagnóstico</span>
+      </div>
+
+      <div class="grid">
+        <div class="field-group full">
+          {{ form.descricao_problema.label_tag }}
+          {{ form.descricao_problema }}
+          {{ form.descricao_problema.errors }}
+        </div>
+
+        <div class="field-group full">
+          {{ form.impacto_problema.label_tag }}
+          {{ form.impacto_problema }}
+          {{ form.impacto_problema.errors }}
+        </div>
+
+        <div class="field-group full">
+          {{ form.causa_problema.label_tag }}
+          {{ form.causa_problema }}
+          {{ form.causa_problema.errors }}
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>A solução proposta</h3>
+        <span class="section-tag">Proposta</span>
+      </div>
+
+      <div class="grid">
+        <div class="field-group full">
+          {{ form.descricao_ideia.label_tag }}
+          {{ form.descricao_ideia }}
+          {{ form.descricao_ideia.errors }}
+        </div>
+
+        <div class="field-group full">
+          {{ form.como_a_ideia_resolve_problema.label_tag }}
+          {{ form.como_a_ideia_resolve_problema }}
+          {{ form.como_a_ideia_resolve_problema.errors }}
+        </div>
+
+        <div class="field-group full radio-group">
+          {{ form.participacao_implementacao.label_tag }}
+          {{ form.participacao_implementacao }}
+          {{ form.participacao_implementacao.errors }}
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>Impacto e resultados</h3>
+        <span class="section-tag">Benefícios</span>
+      </div>
+
+      <div class="grid">
+        <div class="field-group full checkbox-group">
+          {{ form.beneficios.label_tag }}
+          {{ form.beneficios }}
+          {{ form.beneficios.errors }}
+        </div>
+
+        <div class="field-group full hidden" id="outros-beneficios-group">
+          {{ form.outros_beneficios.label_tag }}
+          {{ form.outros_beneficios }}
+          {{ form.outros_beneficios.errors }}
+        </div>
+
+        <div class="field-group full">
+          {{ form.ganhos_esperados.label_tag }}
+          {{ form.ganhos_esperados }}
+          {{ form.ganhos_esperados.errors }}
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-header">
+        <h3>Viabilidade</h3>
+        <span class="section-tag">Execução</span>
+      </div>
+
+      <div class="grid">
+        <div class="field-group full">
+          {{ form.necessidades_ideia.label_tag }}
+          {{ form.necessidades_ideia }}
+          {{ form.necessidades_ideia.errors }}
+        </div>
+
+        <div class="field-group half">
+          {{ form.valor_estimado_ideia.label_tag }}
+          {{ form.valor_estimado_ideia }}
+          {{ form.valor_estimado_ideia.errors }}
+        </div>
+
+        <div class="field-group half">
+          {{ form.prazo_estimado_ideia.label_tag }}
+          {{ form.prazo_estimado_ideia }}
+          {{ form.prazo_estimado_ideia.errors }}
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="actions-info">
+        Revise os dados antes de enviar sua ideia.
+      </div>
+      <button type="submit" class="btn">Salvar ideia</button>
+    </div>
+  </form>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+  function toggleIntegrantesEquipe() {
+    const radios = document.querySelectorAll('input[name="forma_de_participacao"]');
+    const grupoIntegrantes = document.getElementById('integrantes-equipe-group');
+    let selecionado = null;
+
+    radios.forEach(radio => {
+      if (radio.checked) {
+        selecionado = radio.value;
+      }
+    });
+
+    if (selecionado === 'GRP') {
+      grupoIntegrantes.classList.remove('hidden');
+    } else {
+      grupoIntegrantes.classList.add('hidden');
+    }
+  }
+
+  function toggleOutrosBeneficios() {
+    const checkboxes = document.querySelectorAll('input[name="beneficios"]');
+    const grupoOutros = document.getElementById('outros-beneficios-group');
+    let outrosMarcado = false;
+
+    checkboxes.forEach(checkbox => {
+      const labelElement =
+        checkbox.closest('label') ||
+        checkbox.parentElement ||
+        checkbox.closest('li');
+
+      const labelText = labelElement?.textContent?.trim().toLowerCase() || '';
+      const valueText = checkbox.value?.trim().toLowerCase() || '';
+
+      if (
+        checkbox.checked &&
+        (
+          labelText.includes('outros') ||
+          valueText === 'outros'
+        )
+      ) {
+        outrosMarcado = true;
+      }
+    });
+
+    grupoOutros.classList.toggle('hidden', !outrosMarcado);
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const radiosParticipacao = document.querySelectorAll('input[name="forma_de_participacao"]');
+    const checkboxesBeneficios = document.querySelectorAll('input[name="beneficios"]');
+
+      $('.select2-integrantes').select2({
+    width: '100%',
+    placeholder: 'Digite ou selecione os integrantes',
+    allowClear: true
+    });
+
+    radiosParticipacao.forEach(radio => {
+      radio.addEventListener('change', toggleIntegrantesEquipe);
+    });
+
+    checkboxesBeneficios.forEach(checkbox => {
+      checkbox.addEventListener('change', toggleOutrosBeneficios);
+    });
+
+    toggleIntegrantesEquipe();
+    toggleOutrosBeneficios();
+  });
+</script>
+{% endblock %}
+

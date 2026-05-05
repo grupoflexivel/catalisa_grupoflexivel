@@ -1,0 +1,47 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Sistema{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+</head>
+<body>
+  <div class="page">
+
+    <header class="hero">
+      <img src="{% static 'logo.png' %}" alt="Logo" class="hero-logo">
+      <div style="position: absolute; top: 24px; right: 24px; text-align: right;">
+        {% block user_menu %}
+        {% if user.is_authenticated %}
+          <div class="muted" style="margin-bottom: 6px;">
+            {{ user.username }}
+          </div>
+
+          <form method="post" action="{% url 'logout' %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-secondary">
+              Sair
+            </button>
+          </form>
+        {% endif %}
+      {%endblock user_menu%}
+      </div>
+
+      <div class="hero-badge">{% block badge %}{% endblock %}</div>
+      <h1>{% block hero_title %}{% endblock %}</h1>
+      <p>{% block hero_description %}{% endblock %}</p>
+    </header>
+
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+
+  </div>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

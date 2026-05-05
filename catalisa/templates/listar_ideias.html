@@ -1,0 +1,234 @@
+{% extends 'base.html' %}
+
+{% block title %}Ideias{% endblock %}
+
+{% block badge %}📋 Catalisa{% endblock %}
+{% block hero_title %}Ideias cadastradas{% endblock %}
+{% block hero_description %}
+Visualize todas as ideias enviadas no sistema.
+{% endblock %}
+
+{% block section_title %}
+
+<div class="section-header-flex">
+  <div>
+    <h2>Lista de ideias</h2>
+    <p class="section-description">
+      Clique em uma ideia para expandir os detalhes.
+    </p>
+  </div>
+
+  <div class="section-counter">
+    {{ total_ideias }} ideias
+  </div>
+</div>
+{% endblock %}
+
+{% block section_description %}{% endblock %}
+
+{% block content %}
+
+<style>
+.ideas-list {
+  display: grid;
+  gap: 18px;
+}
+
+/* CARD */
+.idea-card {
+  background: var(--surface-strong);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.idea-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
+.idea-card[open] {
+  border-color: rgba(37, 99, 235, 0.35);
+  box-shadow: 0 18px 40px rgba(37, 99, 235, 0.10);
+}
+
+.idea-card summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 20px 24px;
+}
+
+.idea-card summary::-webkit-details-marker {
+  display: none;
+}
+.idea-card summary::marker {
+  display: none;
+}
+
+.idea-title {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.idea-meta {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+
+.idea-preview {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.idea-content {
+  padding: 0 24px;
+  border-top: 1px solid #eef2f7;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.idea-card[open] .idea-content {
+  padding: 20px 24px 24px;
+  max-height: 2000px;
+  opacity: 1;
+}
+
+.idea-block {
+  margin-top: 18px;
+}
+
+.idea-block:not(:last-child) {
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 14px;
+}
+
+.section-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.section-counter {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--primary);
+  background: #eef4ff;
+  padding: 6px 12px;
+  border-radius: 999px;
+}
+
+/* PAGINAÇÃO */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.pagination a,
+.pagination span {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pagination a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.pagination a:hover {
+  background: #eef4ff;
+}
+
+.pagination .current {
+  background: var(--primary);
+  color: white;
+}
+
+.pagination .disabled {
+  color: var(--muted);
+}
+</style>
+
+{% if ideias %}
+
+  <div class="ideas-list">
+
+
+{% for ideia in ideias %}
+  <details class="idea-card">
+    <summary>
+      <div class="idea-title">{{ ideia.titulo }}</div>
+      <div class="idea-meta">{{ ideia.nome_autor }} • {{ ideia.departamento }}</div>
+      <div class="idea-preview">
+        {{ ideia.descricao_ideia|truncatechars:120 }}
+      </div>
+    </summary>
+
+    <div class="idea-content">
+      <div class="idea-block">
+        <h4>Autor</h4>
+        <p><strong>Nome:</strong> {{ ideia.nome_autor }}</p>
+        <p><strong>Unidade:</strong> {{ ideia.unidade_fabril }}</p>
+        <p><strong>Departamento:</strong> {{ ideia.departamento }}</p>
+
+        {% if ideia.integrantes_equipe.exists %}
+          <p><strong>Equipe:</strong>
+            {% for usuario in ideia.integrantes_equipe.all %}
+              {{ usuario.nome_completo }}{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </p>
+        {% endif %}
+      </div>
+    </div>
+  </details>
+{% endfor %}
+
+
+  </div>
+
+{% if ideias.has_other_pages %} <div class="pagination">
+
+  {% if ideias.has_previous %}
+    <a href="?page=1">Primeira</a>
+    <a href="?page={{ ideias.previous_page_number }}">Anterior</a>
+  {% else %}
+    <span class="disabled">Primeira</span>
+    <span class="disabled">Anterior</span>
+  {% endif %}
+
+  <span class="current">
+    Página {{ ideias.number }} de {{ ideias.paginator.num_pages }}
+  </span>
+
+  {% if ideias.has_next %}
+    <a href="?page={{ ideias.next_page_number }}">Próxima</a>
+    <a href="?page={{ ideias.paginator.num_pages }}">Última</a>
+  {% else %}
+    <span class="disabled">Próxima</span>
+    <span class="disabled">Última</span>
+  {% endif %}
+
+</div>
+
+{% endif %}
+
+{% else %}
+
+  <div class="alert alert-warning">
+    Nenhuma ideia cadastrada ainda.
+  </div>
+{% endif %}
+
+{% endblock %}

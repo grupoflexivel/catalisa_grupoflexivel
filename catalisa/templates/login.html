@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block badge %}🔐 Acesso ao Sistema{% endblock %}
+{% block hero_title %}Entrar na plataforma{% endblock %}
+{% block hero_description %}
+Informe suas credenciais para acessar o sistema.
+{% endblock %}
+
+{% block section_title %}Autenticação{% endblock %}
+{% block section_description %}
+Use seu usuário e senha corporativos.
+{% endblock %}
+
+{% block content %}
+
+<form method="post">
+    {% csrf_token %}
+
+    {% if login_form.non_field_errors %}
+    <div class="alert alert-danger">
+        {% for error in login_form.non_field_errors %}
+        <p>{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="section">
+        <div class="section-header">
+            <h3>Dados de acesso</h3>
+            <span class="section-tag">Login</span>
+        </div>
+
+        <div class="grid">
+            <div class="col-12">
+                <label for="id_username">Usuário</label>
+                {{ login_form.username }}
+                {% if login_form.username.errors %}
+                <div class="alert alert-danger" style="margin-top:10px;">
+                    {{ login_form.username.errors }}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="col-12">
+                <label for="id_password">Senha</label>
+                <div style="position: relative; display: flex; align-items: center;">
+                    {{ login_form.password }}
+                    
+                    <button type="button" id="togglePassword" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer; color: #666; display: flex; align-items: center; justify-content: center; padding: 5px;">
+                        <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M16 8s-3-5.5-8-5.5S0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                            <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                {% if login_form.password.errors %}
+                <div class="alert alert-danger" style="margin-top:10px;">
+                    {{ login_form.password.errors }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <div class="actions-info">
+            Utilize suas credenciais de acesso ao sistema.
+        </div>
+        <button type="submit" class="btn">Entrar</button>
+    </div>
+</form>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.querySelector('#togglePassword');
+        const passwordField = document.querySelector('#id_password');
+        const eyeIcon = document.querySelector('#eyeIcon');
+
+        // SVG do Olho Aberto
+        const eyeOpenPath = `<path d="M16 8s-3-5.5-8-5.5S0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/><path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>`;
+        
+        // SVG do Olho Fechado (Slash)
+        const eyeClosedPath = `<path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/><path d="M11.297 9.176a3.5 3.5 0 0 0-4.474-4.474l.823.823a2.5 2.5 0 0 1 2.829 2.829l.822.822zm-2.943 1.91l.893.893A3.537 3.537 0 0 1 8 11.5a3.5 3.5 0 0 1-3.5-3.5c0-.413.074-.808.211-1.171l.957.957a2.496 2.496 0 0 0 2.326 2.326z"/><path d="M1.08 2.22a.5.5 0 0 0-.708.708L2.483 5.053C1.033 6.44 0 8 0 8s3 5.5 8 5.5a7.029 7.029 0 0 0 2.79-.588l.852.852a.5.5 0 0 0 .708-.708L1.08 2.22zM2.583 7.903a11.583 11.583 0 0 1 .74-1.073l.57.57a6.492 6.492 0 0 0-.374.482c.301.404.808.936 1.477 1.412a6.493 6.493 0 0 0 5.39 1.057l.68.68A7.147 7.147 0 0 1 8 12.5c-2.12 0-3.879-1.168-5.168-2.457a13.134 13.134 0 0 1-1.173-2.043l.924-.1z"/>`;
+
+        if (toggleBtn && passwordField) {
+            toggleBtn.addEventListener('click', function() {
+                const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordField.setAttribute('type', type);
+                
+                // Troca o conteúdo interno do SVG
+                eyeIcon.innerHTML = (type === 'password') ? eyeOpenPath : eyeClosedPath;
+            });
+        }
+    });
+</script>
+
+{% endblock %}

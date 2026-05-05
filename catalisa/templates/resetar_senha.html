@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Resetar senha{% endblock %}
+
+{% block badge %}🔐 Administração{% endblock %}
+{% block hero_title %}Resetar senha de usuário{% endblock %}
+{% block hero_description %}
+Informe o usuário e defina uma nova senha temporária.
+{% endblock %}
+
+{% block section_title %}Redefinição de senha{% endblock %}
+{% block section_description %}
+O usuário será obrigado a trocar a senha no próximo login.
+{% endblock %}
+
+{% block alerts %}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-success">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger">
+      {% for error in form.non_field_errors %}
+        <p style="margin: 0;">{{ error }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<form method="post">
+  {% csrf_token %}
+
+  <div class="section">
+    <div class="section-header">
+      <h3>Dados do usuário</h3>
+      <span class="section-tag">Admin</span>
+    </div>
+
+    <div class="grid">
+      <!-- USERNAME -->
+      <div class="col-12">
+        <label for="{{ form.username.id_for_label }}">Usuário</label>
+        {{ form.username }}
+        {{ form.username.errors }}
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h3>Nova senha</h3>
+      <span class="section-tag">Segurança</span>
+    </div>
+
+    <div class="grid">
+      <!-- NOVA SENHA -->
+      <div class="col-6">
+        <label for="{{ form.new_password1.id_for_label }}">Nova senha</label>
+        {{ form.new_password1 }}
+        {{ form.new_password1.errors }}
+      </div>
+
+      <!-- CONFIRMAR SENHA -->
+      <div class="col-6">
+        <label for="{{ form.new_password2.id_for_label }}">Confirmar nova senha</label>
+        {{ form.new_password2 }}
+        {{ form.new_password2.errors }}
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <div class="actions-info">
+      Após o reset, o usuário deverá trocar a senha no próximo acesso.
+    </div>
+    <button type="submit" class="btn">
+      Resetar senha
+    </button>
+  </div>
+</form>
+{% endblock %}

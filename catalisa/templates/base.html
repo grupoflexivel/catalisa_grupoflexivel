@@ -1,0 +1,78 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Sistema{% endblock %}</title>
+
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <img src="{% static 'logo.png' %}" alt="Logo" class="hero-logo">
+      <div style="position: absolute; top: 24px; right: 24px; text-align: right;">
+        {% if user.is_authenticated %}
+          <div class="muted" style="margin-bottom: 6px;">
+            {{ user.username }}
+          </div>
+
+          <form method="post" action="{% url 'logout' %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-secondary">
+              Sair
+            </button>
+          </form>
+        {% endif %}
+      </div>
+
+      <div class="hero-badge">{% block badge %}Sistema Interno{% endblock %}</div>
+      <h1>{% block hero_title %}Título da página{% endblock %}</h1>
+      <p>{% block hero_description %}Descrição da página ou fluxo principal.{% endblock %}</p>
+    </header>
+
+    {% if user.is_authenticated and user.is_superuser %}
+      <div class="menu-cards">
+        <a href="{% url 'cadastrar_ideia' %}" class="menu-card">
+          <div class="menu-card-title">Cadastrar ideia</div>
+          <div class="menu-card-desc">Criar uma nova ideia no sistema</div>
+        </a>
+
+         <a href="{% url 'cadastro' %}" class="menu-card">
+          <div class="menu-card-title">Cadastrar usuário</div>
+          <div class="menu-card-desc">Cadastrar um novo usuário no sistema</div>
+        </a>
+
+        <a href="{% url 'listar_ideias' %}" class="menu-card">
+          <div class="menu-card-title">Listar ideias</div>
+          <div class="menu-card-desc">Visualizar todas as ideias cadastradas</div>
+        </a>
+        
+        <a href="{% url 'resetar_senha' %}" class="menu-card">
+          <div class="menu-card-title">Resetar senha</div>
+          <div class="menu-card-desc">Redefinir senha de um usuário</div>
+        </a>
+      
+
+        {% block menu_items %}{% endblock %}
+      </div>
+    {% endif %}
+
+    <main class="shell">
+      <div class="shell-header">
+        <h2>{% block section_title %}Conteúdo principal{% endblock %}</h2>
+        <p>{% block section_description %}Subtítulo ou instrução contextual.{% endblock %}</p>
+      </div>
+
+      <div class="shell-body">
+        {% block alerts %}{% endblock %}
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
