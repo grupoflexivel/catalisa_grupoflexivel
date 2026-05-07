@@ -43,6 +43,14 @@ Visualize todas as ideias enviadas no sistema.
   transition: all 0.25s ease;
 }
 
+.idea-block h4 {
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
 .idea-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
@@ -89,13 +97,14 @@ Visualize todas as ideias enviadas no sistema.
   max-height: 0;
   opacity: 0;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, padding 0.3s ease;
 }
 
 .idea-card[open] .idea-content {
   padding: 20px 24px 24px;
-  max-height: 2000px;
+  max-height: none;
   opacity: 1;
+  overflow: visible;
 }
 
 .idea-block {
@@ -177,20 +186,106 @@ Visualize todas as ideias enviadas no sistema.
     </summary>
 
     <div class="idea-content">
+
       <div class="idea-block">
-        <h4>Autor</h4>
+        <h4>Informações do Autor</h4>
+
         <p><strong>Nome:</strong> {{ ideia.nome_autor }}</p>
-        <p><strong>Unidade:</strong> {{ ideia.unidade_fabril }}</p>
-        <p><strong>Departamento:</strong> {{ ideia.departamento }}</p>
+        <p><strong>Unidade/Planta:</strong> {{ ideia.unidade_fabril }}</p>
+        <p><strong>Área/Departamento:</strong> {{ ideia.departamento }}</p>
+        <p><strong>Forma de participação:</strong> {{ ideia.get_forma_de_participacao_display }}</p>
 
         {% if ideia.integrantes_equipe.exists %}
-          <p><strong>Equipe:</strong>
+          <p><strong>Integrantes da equipe:</strong>
             {% for usuario in ideia.integrantes_equipe.all %}
-              {{ usuario.nome_completo }}{% if not forloop.last %}, {% endif %}
+              {{ usuario.nome_completo|default:usuario.get_full_name|default:usuario.username }}{% if not forloop.last %}, {% endif %}
             {% endfor %}
           </p>
         {% endif %}
       </div>
+
+      <div class="idea-block">
+        <h4>Ideia</h4>
+
+        <p><strong>Título:</strong> {{ ideia.titulo }}</p>
+
+        <p>
+          <strong>1. Qual problema ou oportunidade você identificou?</strong><br>
+          {{ ideia.descricao_problema|linebreaksbr }}
+        </p>
+
+        <p>
+          <strong>2. Qual o impacto desse problema?</strong><br>
+          {{ ideia.impacto_problema|linebreaksbr }}
+        </p>
+
+        <p>
+          <strong>3. Por que esse problema acontece hoje?</strong><br>
+          {{ ideia.causa_problema|linebreaksbr }}
+        </p>
+
+        <p>
+          <strong>4. Qual é a sua ideia?</strong><br>
+          {{ ideia.descricao_ideia|linebreaksbr }}
+        </p>
+
+        <p>
+          <strong>5. Como ela resolve ou ameniza o problema?</strong><br>
+          {{ ideia.como_a_ideia_resolve_problema|linebreaksbr }}
+        </p>
+      </div>
+
+      <div class="idea-block">
+        <h4>Implementação</h4>
+
+        <p>
+          <strong>6. Gostaria de participar da implementação?</strong><br>
+          {{ ideia.get_participacao_implementacao_display }}
+        </p>
+
+        <p>
+          <strong>7. Do que precisamos para tirar sua ideia do papel?</strong><br>
+          {{ ideia.necessidades_ideia|linebreaksbr }}
+        </p>
+
+        <p>
+          <strong>8. Valor estimado para implementação:</strong><br>
+          {{ ideia.valor_estimado_ideia }}
+        </p>
+
+        <p>
+          <strong>9. Prazo estimado para implementação:</strong><br>
+          {{ ideia.prazo_estimado_ideia }}
+        </p>
+      </div>
+
+      <div class="idea-block">
+        <h4>Benefícios e Ganhos</h4>
+
+        {% if ideia.beneficios.exists %}
+          <p><strong>10. Principais benefícios esperados:</strong></p>
+          <ul>
+            {% for beneficio in ideia.beneficios.all %}
+              <li>{{ beneficio.nome }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p><strong>10. Principais benefícios esperados:</strong> Nenhum benefício informado.</p>
+        {% endif %}
+
+        {% if ideia.outros_beneficios %}
+          <p>
+            <strong>Outros benefícios:</strong><br>
+            {{ ideia.outros_beneficios }}
+          </p>
+        {% endif %}
+
+        <p>
+          <strong>11. Quais são os ganhos esperados?</strong><br>
+          {{ ideia.ganhos_esperados|linebreaksbr }}
+        </p>
+      </div>
+
     </div>
   </details>
 {% endfor %}

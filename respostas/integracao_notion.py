@@ -19,7 +19,7 @@ def envia_ideia_para_notion_em_background(ideia_id):
         logger.warning(f"Ideia não encontrada para envio ao Notion. ID={ideia_id}")
 
     except Exception:
-        logger.exception("Erro ao enviar ideia para o Notion. ID={ideia_id}")
+        logger.exception(f"Erro ao enviar ideia para o Notion. ID={ideia_id}")
 
 def json_envio_ideia(ideia):
     token = os.getenv("NOTION_TOKEN")
@@ -39,7 +39,7 @@ def json_envio_ideia(ideia):
     "Notion-Version": notion_version, 
     }
     data = {
-        "parent": {"database_id": "34b28912840380018f95fcc734bffe14"},
+        "parent": {"database_id": notion_database_id},
         "properties": {
 
             "Autor": {
