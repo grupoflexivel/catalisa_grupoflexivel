@@ -12,8 +12,10 @@ class Command(BaseCommand):
 
     def handle(self,*args,**options):
         path = options['csv_file']
-        with open(path, 'r', encoding='latin-1') as file:
+        with open(path, 'r', encoding='utf-8-sig') as file:
             reader = csv.DictReader(file,delimiter=';')
+            print(reader.fieldnames)
+
             for row in reader:
                 if not User.objects.filter(username=row['username']).exists():
                     User.objects.create_user(

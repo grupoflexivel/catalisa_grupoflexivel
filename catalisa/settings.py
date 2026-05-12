@@ -140,28 +140,20 @@ AUTH_USER_MODEL = 'contas.Usuario'
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-
-    "formatters": {
-        "verbose": {
-            "format": "[{levelname}] {asctime} {name} - {message}",
-            "style": "{",
-        },
-    },
-
     "handlers": {
-        "file": {
-            "level": "INFO",
-            "class": "logging.FileHandler",
-            "filename": "logs/app.log",
-            "formatter": "verbose",
+        "console": {
+            "class": "logging.StreamHandler",
         },
     },
-
+    "root": {
+        "handlers": ["console"],
+        "level": "INFO",
+    },
     "loggers": {
-        "": {
-            "handlers": ["file"],
+        "django": {
+            "handlers": ["console"],
             "level": "INFO",
-            "propagate": True,
+            "propagate": False,
         },
     },
 }
