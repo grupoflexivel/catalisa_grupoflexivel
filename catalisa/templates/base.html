@@ -13,13 +13,13 @@
   <div class="page">
     <header class="hero">
       <img src="{% static 'logo.png' %}" alt="Logo" class="hero-logo">
-      <div style="position: absolute; top: 24px; right: 24px; text-align: right;">
+      <div style="position: absolute; top: 24px; right: 24px; text-align: center;">
         {% if user.is_authenticated %}
           <div class="muted" style="margin-bottom: 6px;">
             {{ user.username }}
           </div>
 
-          <form method="post" action="{% url 'logout' %}" style="display: inline;">
+          <form method="post" action="{% url 'logout' %}" style="display: inline-block;">
             {% csrf_token %}
             <button type="submit" class="btn btn-secondary">
               Sair

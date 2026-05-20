@@ -163,7 +163,7 @@ def json_envio_ideia(ideia):
 
             "Status da Ideia": {
                 "select": {
-                    "name": ideia.status_ideia
+                    "name": "Novas"
                     }
             },
 

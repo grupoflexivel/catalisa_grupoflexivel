@@ -385,7 +385,12 @@ Preencha os campos abaixo com o máximo de informações possível.
     $('.select2-integrantes').select2({
       width: '100%',
       placeholder: 'Digite ou selecione os integrantes',
-      allowClear: true
+      allowClear: true,
+      language: {
+        noResults: function () {
+          return 'Nenhum usuário encontrado';
+        }
+      }
     });
 
     radiosParticipacao.forEach(radio => {
