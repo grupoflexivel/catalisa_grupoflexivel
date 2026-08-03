@@ -1,0 +1,81 @@
+{% comment %}
+Formulário de criação de usuários (uso administrativo).
+Erros retornam via HTMX; o sucesso recarrega a página com o toast de confirmação.
+{% endcomment %}
+<form method="post"
+      action="{% url 'cadastro' %}"
+      id="form-cadastro-usuario"
+      hx-post="{% url 'cadastro' %}"
+      hx-target="this"
+      hx-swap="outerHTML"
+      hx-disabled-elt="find button[type=submit]"
+      class="grid gap-6">
+  {% csrf_token %}
+
+  {% if user_form.errors %}
+    <div class="alert alert-error exp-fade-up items-start gap-3 rounded-2xl border-error/20 bg-error/10">
+      <svg class="mt-0.5 size-5 shrink-0 text-error"><use href="#i-alert"/></svg>
+      <div class="text-sm leading-relaxed">
+        <p class="font-semibold text-error">Não foi possível criar o usuário.</p>
+        <ul class="mt-1 list-disc space-y-0.5 pl-4 text-base-content/70">
+          {% for campo in user_form %}
+            {% for erro in campo.errors %}<li>{{ erro }}</li>{% endfor %}
+          {% endfor %}
+          {% for erro in user_form.non_field_errors %}<li>{{ erro }}</li>{% endfor %}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
+
+  <section class="exp-surface exp-topline overflow-hidden">
+    <header class="flex items-start gap-4 border-b border-base-300/60 px-6 py-5 sm:px-8">
+      <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+        <svg class="size-5"><use href="#i-user"/></svg>
+      </span>
+      <div>
+        <h2 class="text-lg font-semibold tracking-tight text-primary">Identificação</h2>
+        <p class="mt-0.5 text-sm text-base-content/60">Dados que identificam o colaborador no sistema.</p>
+      </div>
+    </header>
+
+    <div class="grid gap-5 px-6 py-6 sm:px-8">
+      {% include "partials/_campo.html" with campo=user_form.username ajuda="Padrão sugerido: nome.sobrenome, sem espaços e sem acentos." %}
+      {% include "partials/_campo.html" with campo=user_form.nome_completo %}
+    </div>
+  </section>
+
+  <section class="exp-surface exp-topline overflow-hidden">
+    <header class="flex items-start gap-4 border-b border-base-300/60 px-6 py-5 sm:px-8">
+      <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+        <svg class="size-5"><use href="#i-lock"/></svg>
+      </span>
+      <div>
+        <h2 class="text-lg font-semibold tracking-tight text-primary">Senha inicial</h2>
+        <p class="mt-0.5 text-sm text-base-content/60">O colaborador troca esta senha no primeiro acesso.</p>
+      </div>
+    </header>
+
+    <div class="grid gap-5 px-6 py-6 sm:grid-cols-2 sm:px-8">
+      {% include "partials/_campo_senha.html" with campo=user_form.password1 sem_ajuda=True %}
+      {% include "partials/_campo_senha.html" with campo=user_form.password2 sem_ajuda=True %}
+
+      <div class="flex items-start gap-3 rounded-2xl border border-info/20 bg-info/5 p-4 sm:col-span-2">
+        <svg class="mt-0.5 size-4 shrink-0 text-info"><use href="#i-info"/></svg>
+        <p class="text-xs leading-relaxed text-base-content/65">
+          Mínimo de 8 caracteres, não pode ser apenas números nem uma senha muito
+          comum. Combine com o colaborador uma senha temporária e oriente a troca.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+    <a href="{% url 'listar_ideias' %}" class="btn btn-ghost h-12 rounded-xl">Cancelar</a>
+    <button type="submit"
+            class="exp-action exp-press btn btn-primary h-12 min-w-48 gap-2 rounded-xl px-7 text-base shadow-lg shadow-primary/20">
+      <span class="loading loading-spinner loading-sm htmx-indicator"></span>
+      <span class="exp-action-label">Criar usuário</span>
+      <svg class="size-4"><use href="#i-user-plus"/></svg>
+    </button>
+  </div>
+</form>

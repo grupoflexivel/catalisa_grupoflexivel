@@ -1,0 +1,31 @@
+{% comment %}
+Campo de senha com botão de mostrar/ocultar.
+
+Uso:
+  {% include "partials/_campo_senha.html" with campo=form.new_password1 %}
+{% endcomment %}
+<div class="exp-field {% if campo.errors %}exp-field--invalid{% endif %} {{ classe_extra }}">
+  <label class="exp-label" for="{{ campo.id_for_label }}">
+    {{ campo.label }}
+    {% if campo.field.required %}<span class="ml-0.5 font-bold text-accent" aria-hidden="true">*</span>{% endif %}
+  </label>
+
+  <div class="relative">
+    {{ campo }}
+    <button type="button"
+            class="btn btn-ghost btn-sm btn-circle absolute right-2 top-1/2 z-10 -translate-y-1/2 text-base-content/45 hover:text-primary"
+            data-toggle-password="{{ campo.id_for_label }}"
+            aria-label="Mostrar senha"
+            tabindex="-1">
+      <svg class="size-5"><use href="#i-eye"/></svg>
+    </button>
+  </div>
+
+  {% if ajuda %}
+    <span class="exp-help">{{ ajuda }}</span>
+  {% elif campo.help_text and not sem_ajuda %}
+    <span class="exp-help">{{ campo.help_text|safe }}</span>
+  {% endif %}
+
+  {{ campo.errors }}
+</div>

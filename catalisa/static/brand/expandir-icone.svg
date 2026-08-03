@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Camada_1" data-name="Camada 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1500 1740.24">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#Gradiente_sem_nome_51-2);
+      }
+
+      .cls-2 {
+        fill: url(#Gradiente_sem_nome_51);
+      }
+    </style>
+    <linearGradient id="Gradiente_sem_nome_51" data-name="Gradiente sem nome 51" x1="0" y1="1032.19" x2="1416.11" y2="1032.19" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f27121"/>
+      <stop offset=".26" stop-color="#f06929"/>
+      <stop offset=".66" stop-color="#ec5440"/>
+      <stop offset=".98" stop-color="#e94057"/>
+    </linearGradient>
+    <linearGradient id="Gradiente_sem_nome_51-2" data-name="Gradiente sem nome 51" x1="83.89" y1="708.05" x2="1500" y2="708.05" xlink:href="#Gradiente_sem_nome_51"/>
+  </defs>
+  <polygon class="cls-2" points="1416.11 324.14 870.12 870.13 1191.37 1191.37 951.13 1191.37 750 990.24 0 1740.24 749.88 1077.99 931.55 1254.9 1341.66 1253.06 958.46 869.86 1416.11 324.14"/>
+  <polygon class="cls-1" points="83.89 1416.1 629.88 870.12 308.63 548.87 548.87 548.87 750 750 1500 0 750.12 662.25 568.45 485.34 158.34 487.18 541.29 870.12 83.89 1416.1"/>
+</svg>

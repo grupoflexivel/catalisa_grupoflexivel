@@ -1,0 +1,23 @@
+{% comment %}
+Renderiza um campo de formulário com rótulo, widget, texto de apoio e erros.
+
+Uso:
+  {% include "partials/_campo.html" with campo=form.titulo %}
+  {% include "partials/_campo.html" with campo=form.valor_estimado_ideia ajuda="Texto auxiliar" %}
+{% endcomment %}
+<div class="exp-field {% if campo.errors %}exp-field--invalid{% endif %} {{ classe_extra }}">
+  <label class="exp-label" for="{{ campo.id_for_label }}">
+    {{ campo.label }}
+    {% if campo.field.required %}<span class="ml-0.5 font-bold text-accent" aria-hidden="true">*</span>{% endif %}
+  </label>
+
+  {{ campo }}
+
+  {% if ajuda %}
+    <span class="exp-help">{{ ajuda }}</span>
+  {% elif campo.help_text %}
+    <span class="exp-help">{{ campo.help_text|safe }}</span>
+  {% endif %}
+
+  {{ campo.errors }}
+</div>

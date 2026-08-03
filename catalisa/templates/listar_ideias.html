@@ -1,329 +1,123 @@
 {% extends 'base.html' %}
 
-{% block title %}Ideias{% endblock %}
+{% block title %}Ideias cadastradas{% endblock %}
 
-{% block badge %}📋 Catalisa{% endblock %}
-{% block hero_title %}Ideias cadastradas{% endblock %}
-{% block hero_description %}
-Visualize todas as ideias enviadas no sistema.
+{% block page_badge %}
+  <span class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
+    <svg class="size-3.5"><use href="#i-shield"/></svg>
+    Área administrativa
+  </span>
 {% endblock %}
 
-{% block section_title %}
+{% block page_title %}Ideias cadastradas{% endblock %}
 
-<div class="section-header-flex">
-  <div>
-    <h2>Lista de ideias</h2>
-    <p class="section-description">
-      Clique em uma ideia para expandir os detalhes.
-    </p>
-  </div>
-
-  <div class="section-counter">
-    {{ total_ideias }} ideias
-  </div>
-</div>
+{% block page_subtitle %}
+  Acompanhe tudo o que foi enviado pelo programa Expandir. Busque por título,
+  autor ou conteúdo e abra qualquer ideia para ler a resposta completa.
 {% endblock %}
 
-{% block section_description %}{% endblock %}
+{% block page_actions %}
+  <div class="exp-surface flex h-14 items-center gap-3.5 px-5">
+    <span class="grid size-9 place-items-center rounded-lg bg-primary/10 text-primary">
+      <svg class="size-[1.15rem]"><use href="#i-inbox"/></svg>
+    </span>
+    <span class="leading-tight">
+      <span class="block text-xl font-bold text-primary">{{ total_ideias }}</span>
+      <span class="block text-[11px] font-medium uppercase tracking-wider text-base-content/50">
+        ideia{{ total_ideias|pluralize }} no total
+      </span>
+    </span>
+  </div>
+
+  <a href="{% url 'cadastrar_ideia' %}" class="exp-press btn btn-primary h-14 gap-2 rounded-2xl px-6">
+    <svg class="size-4"><use href="#i-plus"/></svg>
+    Nova ideia
+  </a>
+{% endblock %}
 
 {% block content %}
 
-<style>
-.ideas-list {
-  display: grid;
-  gap: 18px;
-}
+  {# ==================== FILTROS ==================== #}
+  <form id="filtros-ideias"
+        class="exp-surface exp-topline mb-6 grid gap-4 p-5 sm:p-6"
+        hx-get="{% url 'listar_ideias' %}"
+        hx-target="#resultado-ideias"
+        hx-swap="innerHTML"
+        hx-indicator="#resultado-ideias, #spinner-busca"
+        hx-push-url="true"
+        hx-sync="this:replace"
+        hx-trigger="change delay:150ms,
+                    keyup changed delay:350ms from:#busca-ideias,
+                    search from:#busca-ideias,
+                    submit">
 
-/* CARD */
-.idea-card {
-  background: var(--surface-strong);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  overflow: hidden;
-  transition: all 0.25s ease;
-}
-
-.idea-block h4 {
-  text-align: center;
-  margin-bottom: 16px;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--primary);
-}
-
-.idea-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-}
-
-.idea-card[open] {
-  border-color: rgba(37, 99, 235, 0.35);
-  box-shadow: 0 18px 40px rgba(37, 99, 235, 0.10);
-}
-
-.idea-card summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 20px 24px;
-}
-
-.idea-card summary::-webkit-details-marker {
-  display: none;
-}
-.idea-card summary::marker {
-  display: none;
-}
-
-.idea-title {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.idea-meta {
-  font-size: 14px;
-  color: var(--muted);
-  margin-top: 6px;
-}
-
-.idea-preview {
-  margin-top: 8px;
-  font-size: 14px;
-  color: var(--muted);
-}
-
-.idea-content {
-  padding: 0 24px;
-  border-top: 1px solid #eef2f7;
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
-  transition: opacity 0.3s ease, padding 0.3s ease;
-}
-
-.idea-card[open] .idea-content {
-  padding: 20px 24px 24px;
-  max-height: none;
-  opacity: 1;
-  overflow: visible;
-}
-
-.idea-block {
-  margin-top: 18px;
-}
-
-.idea-block:not(:last-child) {
-  border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 14px;
-}
-
-.section-header-flex {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
-  margin-bottom: 20px;
-}
-
-.section-counter {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--primary);
-  background: #eef4ff;
-  padding: 6px 12px;
-  border-radius: 999px;
-}
-
-/* PAGINAÇÃO */
-.pagination {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 24px;
-  flex-wrap: wrap;
-}
-
-.pagination a,
-.pagination span {
-  padding: 8px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.pagination a {
-  color: var(--primary);
-  text-decoration: none;
-}
-
-.pagination a:hover {
-  background: #eef4ff;
-}
-
-.pagination .current {
-  background: var(--primary);
-  color: white;
-}
-
-.pagination .disabled {
-  color: var(--muted);
-}
-</style>
-
-{% if ideias %}
-
-  <div class="ideas-list">
-
-
-{% for ideia in ideias %}
-  <details class="idea-card">
-    <summary>
-      <div class="idea-title">{{ ideia.titulo }}</div>
-      <div class="idea-meta">{{ ideia.nome_autor }} • {{ ideia.departamento }}</div>
-      <div class="idea-preview">
-        {{ ideia.descricao_ideia|truncatechars:120 }}
-      </div>
-    </summary>
-
-    <div class="idea-content">
-
-      <div class="idea-block">
-        <h4>Informações do Autor</h4>
-
-        <p><strong>Nome:</strong> {{ ideia.nome_autor }}</p>
-        <p><strong>Unidade/Planta:</strong> {{ ideia.unidade_fabril }}</p>
-        <p><strong>Área/Departamento:</strong> {{ ideia.departamento }}</p>
-        <p><strong>Forma de participação:</strong> {{ ideia.get_forma_de_participacao_display }}</p>
-
-        {% if ideia.integrantes_equipe.exists %}
-          <p><strong>Integrantes da equipe:</strong>
-            {% for usuario in ideia.integrantes_equipe.all %}
-              {{ usuario.nome_completo|default:usuario.get_full_name|default:usuario.username }}{% if not forloop.last %}, {% endif %}
-            {% endfor %}
-          </p>
-        {% endif %}
+    <div class="grid gap-3 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
+      <div class="relative">
+        <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-base-content/40">
+          <svg class="size-[1.15rem]"><use href="#i-search"/></svg>
+        </span>
+        <input type="search" name="q" id="busca-ideias" value="{{ termo_busca }}"
+               autocomplete="off"
+               placeholder="Buscar por título, autor ou conteúdo…"
+               class="input h-12 w-full rounded-xl bg-base-100 pl-11 pr-11 text-base">
+        <span class="absolute right-4 top-1/2 -translate-y-1/2">
+          <span id="spinner-busca" class="loading loading-spinner loading-xs htmx-indicator text-primary"></span>
+        </span>
       </div>
 
-      <div class="idea-block">
-        <h4>Ideia</h4>
+      <select name="unidade" class="select h-12 w-full rounded-xl bg-base-100" aria-label="Filtrar por unidade">
+        <option value="">Todas as unidades</option>
+        {% for unidade in unidades %}
+          <option value="{{ unidade.id }}" {% if unidade_selecionada == unidade.id|stringformat:"s" %}selected{% endif %}>
+            {{ unidade.nome }}
+          </option>
+        {% endfor %}
+      </select>
 
-        <p><strong>Título:</strong> {{ ideia.titulo }}</p>
+      <select name="departamento" class="select h-12 w-full rounded-xl bg-base-100" aria-label="Filtrar por área">
+        <option value="">Todas as áreas</option>
+        {% for departamento in departamentos %}
+          <option value="{{ departamento.id }}" {% if departamento_selecionado == departamento.id|stringformat:"s" %}selected{% endif %}>
+            {{ departamento.nome }}
+          </option>
+        {% endfor %}
+      </select>
 
-        <p>
-          <strong>1. Qual problema ou oportunidade você identificou?</strong><br>
-          {{ ideia.descricao_problema|linebreaksbr }}
-        </p>
-
-        <p>
-          <strong>2. Qual o impacto desse problema?</strong><br>
-          {{ ideia.impacto_problema|linebreaksbr }}
-        </p>
-
-        <p>
-          <strong>3. Por que esse problema acontece hoje?</strong><br>
-          {{ ideia.causa_problema|linebreaksbr }}
-        </p>
-
-        <p>
-          <strong>4. Qual é a sua ideia?</strong><br>
-          {{ ideia.descricao_ideia|linebreaksbr }}
-        </p>
-
-        <p>
-          <strong>5. Como ela resolve ou ameniza o problema?</strong><br>
-          {{ ideia.como_a_ideia_resolve_problema|linebreaksbr }}
-        </p>
-      </div>
-
-      <div class="idea-block">
-        <h4>Implementação</h4>
-
-        <p>
-          <strong>6. Gostaria de participar da implementação?</strong><br>
-          {{ ideia.get_participacao_implementacao_display }}
-        </p>
-
-        <p>
-          <strong>7. Do que precisamos para tirar sua ideia do papel?</strong><br>
-          {{ ideia.necessidades_ideia|linebreaksbr }}
-        </p>
-
-        <p>
-          <strong>8. Valor estimado para implementação:</strong><br>
-          {{ ideia.valor_estimado_ideia }}
-        </p>
-
-        <p>
-          <strong>9. Prazo estimado para implementação:</strong><br>
-          {{ ideia.prazo_estimado_ideia }}
-        </p>
-      </div>
-
-      <div class="idea-block">
-        <h4>Benefícios e Ganhos</h4>
-
-        {% if ideia.beneficios.exists %}
-          <p><strong>10. Principais benefícios esperados:</strong></p>
-          <ul>
-            {% for beneficio in ideia.beneficios.all %}
-              <li>{{ beneficio.nome }}</li>
-            {% endfor %}
-          </ul>
-        {% else %}
-          <p><strong>10. Principais benefícios esperados:</strong> Nenhum benefício informado.</p>
-        {% endif %}
-
-        {% if ideia.outros_beneficios %}
-          <p>
-            <strong>Outros benefícios:</strong><br>
-            {{ ideia.outros_beneficios }}
-          </p>
-        {% endif %}
-
-        <p>
-          <strong>11. Quais são os ganhos esperados?</strong><br>
-          {{ ideia.ganhos_esperados|linebreaksbr }}
-        </p>
-      </div>
-
+      <select name="participacao" class="select h-12 w-full rounded-xl bg-base-100" aria-label="Filtrar por participação">
+        <option value="">Individual e grupo</option>
+        {% for valor, rotulo in formas_participacao %}
+          <option value="{{ valor }}" {% if participacao_selecionada == valor %}selected{% endif %}>{{ rotulo }}</option>
+        {% endfor %}
+      </select>
     </div>
-  </details>
-{% endfor %}
 
+    <div class="flex flex-wrap items-center justify-between gap-3 border-t border-base-300/60 pt-4">
+      <p class="flex items-center gap-2 text-xs text-base-content/55">
+        <svg class="size-4"><use href="#i-filter"/></svg>
+        Os resultados são atualizados automaticamente enquanto você digita.
+      </p>
 
+      {% comment %}
+        O estado inicial vem do servidor; depois disso o expandir.js reavalia,
+        porque o HTMX troca apenas o container de resultados e este botão está
+        fora dele.
+      {% endcomment %}
+      <a href="{% url 'listar_ideias' %}"
+         data-limpar-filtros
+         class="btn btn-ghost btn-sm gap-2 rounded-xl {% if not filtros_ativos %}pointer-events-none opacity-40{% endif %}"
+         hx-get="{% url 'listar_ideias' %}"
+         hx-target="#resultado-ideias"
+         hx-swap="innerHTML"
+         hx-push-url="true">
+        <svg class="size-4"><use href="#i-refresh"/></svg>
+        Limpar filtros
+      </a>
+    </div>
+  </form>
+
+  {# ==================== RESULTADO ==================== #}
+  <div id="resultado-ideias" class="exp-swap">
+    {% include "partials/_ideias_resultado.html" %}
   </div>
-
-{% if ideias.has_other_pages %} <div class="pagination">
-
-  {% if ideias.has_previous %}
-    <a href="?page=1">Primeira</a>
-    <a href="?page={{ ideias.previous_page_number }}">Anterior</a>
-  {% else %}
-    <span class="disabled">Primeira</span>
-    <span class="disabled">Anterior</span>
-  {% endif %}
-
-  <span class="current">
-    Página {{ ideias.number }} de {{ ideias.paginator.num_pages }}
-  </span>
-
-  {% if ideias.has_next %}
-    <a href="?page={{ ideias.next_page_number }}">Próxima</a>
-    <a href="?page={{ ideias.paginator.num_pages }}">Última</a>
-  {% else %}
-    <span class="disabled">Próxima</span>
-    <span class="disabled">Última</span>
-  {% endif %}
-
-</div>
-
-{% endif %}
-
-{% else %}
-
-  <div class="alert alert-warning">
-    Nenhuma ideia cadastrada ainda.
-  </div>
-{% endif %}
 
 {% endblock %}

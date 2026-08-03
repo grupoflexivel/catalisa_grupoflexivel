@@ -1,0 +1,251 @@
+{% comment %}
+Formulário de cadastro de ideia.
+
+É trocado por inteiro (hx-swap="outerHTML") quando a validação falha, de forma
+que os erros aparecem sem recarregar a página e sem perder o que foi digitado.
+{% endcomment %}
+<form method="post"
+      action="{% url 'cadastrar_ideia' %}"
+      id="form-ideia"
+      hx-post="{% url 'cadastrar_ideia' %}"
+      hx-target="this"
+      hx-swap="outerHTML"
+      hx-disabled-elt="find button[type=submit]"
+      class="grid gap-6">
+  {% csrf_token %}
+
+  {% if form.errors %}
+    <div class="alert alert-error exp-fade-up items-start gap-3 rounded-2xl border-error/20 bg-error/10 text-error-content">
+      <svg class="mt-0.5 size-5 shrink-0 text-error"><use href="#i-alert"/></svg>
+      <div class="text-sm leading-relaxed">
+        <p class="font-semibold text-error">Revise os campos destacados antes de enviar.</p>
+        {% for erro in form.non_field_errors %}
+          <p class="mt-1 text-base-content/75">{{ erro }}</p>
+        {% endfor %}
+        <p class="mt-1 text-base-content/70">
+          {{ form.errors|length }} campo{{ form.errors|length|pluralize:"s" }} precisa{{ form.errors|length|pluralize:"m" }} de atenção.
+        </p>
+      </div>
+    </div>
+  {% endif %}
+
+  {# ==================== ETAPA 1 — AUTOR ==================== #}
+  <section class="exp-surface exp-topline overflow-hidden">
+    <header class="flex items-start gap-4 border-b border-base-300/60 px-6 py-5 sm:px-8">
+      <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-sm font-bold text-primary">01</span>
+      <div>
+        <h2 class="text-lg font-semibold tracking-tight text-primary">Quem está enviando</h2>
+        <p class="mt-0.5 text-sm text-base-content/60">Identificação do autor e da equipe.</p>
+      </div>
+    </header>
+
+    <div class="grid gap-5 px-6 py-6 sm:grid-cols-2 sm:px-8">
+      <div class="sm:col-span-2">
+        <div class="exp-field {% if form.nome_autor.errors %}exp-field--invalid{% endif %}">
+          <label class="exp-label">
+            {{ form.nome_autor.label }}
+            {% if form.nome_autor.field.required %}<span class="ml-0.5 font-bold text-accent" aria-hidden="true">*</span>{% endif %}
+          </label>
+
+          <div data-exp-picker
+               class="rounded-2xl border border-base-300/80 bg-base-200/40 p-4">
+            <div class="relative mb-3">
+              <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/40">
+                <svg class="size-4"><use href="#i-search"/></svg>
+              </span>
+              <input type="search" data-picker-search autocomplete="off"
+                     placeholder="Buscar colaborador pelo nome"
+                     class="input h-11 w-full rounded-xl bg-base-100 pl-10 text-sm">
+            </div>
+
+            <div class="exp-scroll-shadow grid max-h-56 gap-2 pr-1">
+              {% for opcao in form.nome_autor %}
+                <label class="exp-choice" data-picker-option>
+                  {{ opcao.tag }}
+                  <span class="min-w-0 flex-1 truncate">{{ opcao.choice_label }}</span>
+                </label>
+              {% empty %}
+                <p class="rounded-xl bg-base-100 px-4 py-3 text-sm text-base-content/55">
+                  Nenhum colaborador disponível para seleção.
+                </p>
+              {% endfor %}
+
+              <p data-picker-empty class="hidden px-1 py-3 text-sm text-base-content/55">
+                Nenhum colaborador encontrado com esse nome.
+              </p>
+            </div>
+
+            <p class="mt-3 text-xs text-base-content/55">
+              Se você estiver cadastrando no lugar de outra pessoa, selecione o nome dela.
+            </p>
+          </div>
+
+          {{ form.nome_autor.errors }}
+        </div>
+      </div>
+
+      {% include "partials/_campo.html" with campo=form.unidade_fabril %}
+      {% include "partials/_campo.html" with campo=form.departamento %}
+
+      <div class="exp-field exp-choices exp-choices--cols sm:col-span-2 {% if form.forma_de_participacao.errors %}exp-field--invalid{% endif %}">
+        <label class="exp-label">{{ form.forma_de_participacao.label }}</label>
+        {{ form.forma_de_participacao }}
+        {{ form.forma_de_participacao.errors }}
+      </div>
+
+      {# Aparece apenas quando a participação é em grupo #}
+      <div class="sm:col-span-2 hidden"
+           data-show-when="forma_de_participacao"
+           data-show-values="GRP">
+        <div class="exp-field {% if form.integrantes_equipe.errors %}exp-field--invalid{% endif %}">
+          <label class="exp-label">{{ form.integrantes_equipe.label }}</label>
+
+          <div data-exp-picker data-max="3"
+               data-picker-exclude-field="{{ form.nome_autor.html_name }}"
+               class="rounded-2xl border border-base-300/80 bg-base-200/40 p-4">
+            <div class="relative mb-3">
+              <span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-base-content/40">
+                <svg class="size-4"><use href="#i-search"/></svg>
+              </span>
+              <input type="search" data-picker-search autocomplete="off"
+                     placeholder="Buscar colaborador pelo nome"
+                     class="input h-11 w-full rounded-xl bg-base-100 pl-10 text-sm">
+            </div>
+
+            <div data-picker-chips class="mb-3 hidden flex-wrap gap-2"></div>
+
+            <div class="exp-scroll-shadow grid max-h-64 gap-2 pr-1">
+              {% for opcao in form.integrantes_equipe %}
+                <label class="exp-choice" data-picker-option>
+                  {{ opcao.tag }}
+                  <span class="min-w-0 flex-1 truncate">{{ opcao.choice_label }}</span>
+                </label>
+              {% empty %}
+                <p class="rounded-xl bg-base-100 px-4 py-3 text-sm text-base-content/55">
+                  Nenhum colaborador disponível para seleção.
+                </p>
+              {% endfor %}
+
+              <p data-picker-empty class="hidden px-1 py-3 text-sm text-base-content/55">
+                Nenhum colaborador encontrado com esse nome.
+              </p>
+            </div>
+
+            <p class="mt-3 flex items-center justify-between gap-3 text-xs text-base-content/55">
+              <span>Além do autor, a equipe pode ter até 3 integrantes.</span>
+              <span data-picker-count class="font-semibold"></span>
+            </p>
+          </div>
+
+          {{ form.integrantes_equipe.errors }}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# ==================== ETAPA 2 — O PROBLEMA ==================== #}
+  <section class="exp-surface exp-topline overflow-hidden">
+    <header class="flex items-start gap-4 border-b border-base-300/60 px-6 py-5 sm:px-8">
+      <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-sm font-bold text-primary">02</span>
+      <div class="flex-1">
+        <h2 class="text-lg font-semibold tracking-tight text-primary">O problema</h2>
+        <p class="mt-0.5 text-sm text-base-content/60">O que acontece hoje, o impacto e a causa.</p>
+      </div>
+      <span class="badge badge-ghost hidden rounded-full border-base-300 text-xs font-medium sm:inline-flex">Diagnóstico</span>
+    </header>
+
+    <div class="grid gap-5 px-6 py-6 sm:px-8">
+      {% include "partials/_campo.html" with campo=form.titulo ajuda="Um bom título resume a ideia em poucas palavras." %}
+      {% include "partials/_campo.html" with campo=form.descricao_problema %}
+      {% include "partials/_campo.html" with campo=form.impacto_problema %}
+      {% include "partials/_campo.html" with campo=form.causa_problema %}
+    </div>
+  </section>
+
+  {# ==================== ETAPA 3 — A SOLUÇÃO ==================== #}
+  <section class="exp-surface exp-topline overflow-hidden">
+    <header class="flex items-start gap-4 border-b border-base-300/60 px-6 py-5 sm:px-8">
+      <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-sm font-bold text-primary">03</span>
+      <div class="flex-1">
+        <h2 class="text-lg font-semibold tracking-tight text-primary">A sua ideia</h2>
+        <p class="mt-0.5 text-sm text-base-content/60">Como a solução funciona e o que ela resolve.</p>
+      </div>
+      <span class="badge badge-ghost hidden rounded-full border-base-300 text-xs font-medium sm:inline-flex">Proposta</span>
+    </header>
+
+    <div class="grid gap-5 px-6 py-6 sm:px-8">
+      {% include "partials/_campo.html" with campo=form.descricao_ideia %}
+      {% include "partials/_campo.html" with campo=form.como_a_ideia_resolve_problema %}
+
+      <div class="exp-field exp-choices exp-choices--cols {% if form.participacao_implementacao.errors %}exp-field--invalid{% endif %}">
+        <label class="exp-label">{{ form.participacao_implementacao.label }}</label>
+        {{ form.participacao_implementacao }}
+        {{ form.participacao_implementacao.errors }}
+      </div>
+    </div>
+  </section>
+
+  {# ==================== ETAPA 4 — BENEFÍCIOS ==================== #}
+  <section class="exp-surface exp-topline overflow-hidden">
+    <header class="flex items-start gap-4 border-b border-base-300/60 px-6 py-5 sm:px-8">
+      <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-sm font-bold text-primary">04</span>
+      <div class="flex-1">
+        <h2 class="text-lg font-semibold tracking-tight text-primary">Impacto esperado</h2>
+        <p class="mt-0.5 text-sm text-base-content/60">Selecione os benefícios e descreva os ganhos.</p>
+      </div>
+      <span class="badge badge-ghost hidden rounded-full border-base-300 text-xs font-medium sm:inline-flex">Benefícios</span>
+    </header>
+
+    <div class="grid gap-5 px-6 py-6 sm:px-8">
+      <div class="exp-field exp-choices exp-choices--cols {% if form.beneficios.errors %}exp-field--invalid{% endif %}">
+        <label class="exp-label">{{ form.beneficios.label }}</label>
+        {{ form.beneficios }}
+        {{ form.beneficios.errors }}
+      </div>
+
+      {# Aparece apenas quando "Outros" é marcado #}
+      <div class="hidden"
+           data-show-when="beneficios"
+           data-show-when-label
+           data-show-values="outros">
+        {% include "partials/_campo.html" with campo=form.outros_beneficios %}
+      </div>
+
+      {% include "partials/_campo.html" with campo=form.ganhos_esperados %}
+    </div>
+  </section>
+
+  {# ==================== ETAPA 5 — VIABILIDADE ==================== #}
+  <section class="exp-surface exp-topline overflow-hidden">
+    <header class="flex items-start gap-4 border-b border-base-300/60 px-6 py-5 sm:px-8">
+      <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-sm font-bold text-primary">05</span>
+      <div class="flex-1">
+        <h2 class="text-lg font-semibold tracking-tight text-primary">Viabilidade</h2>
+        <p class="mt-0.5 text-sm text-base-content/60">O que é preciso para tirar a ideia do papel.</p>
+      </div>
+      <span class="badge badge-ghost hidden rounded-full border-base-300 text-xs font-medium sm:inline-flex">Execução</span>
+    </header>
+
+    <div class="grid gap-5 px-6 py-6 sm:grid-cols-2 sm:px-8">
+      <div class="sm:col-span-2">
+        {% include "partials/_campo.html" with campo=form.necessidades_ideia %}
+      </div>
+      {% include "partials/_campo.html" with campo=form.valor_estimado_ideia ajuda="Uma estimativa aproximada já ajuda na análise." %}
+      {% include "partials/_campo.html" with campo=form.prazo_estimado_ideia ajuda="Pode ser em dias, semanas ou meses." %}
+    </div>
+  </section>
+
+  {# ==================== AÇÕES ==================== #}
+  <div class="exp-surface sticky bottom-4 z-20 flex flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-8">
+    <p class="flex items-start gap-2.5 text-sm text-base-content/60">
+      <svg class="mt-0.5 size-4 shrink-0 text-secondary"><use href="#i-info"/></svg>
+      Revise as informações antes de enviar. Você poderá cadastrar outra ideia em seguida.
+    </p>
+
+    <button type="submit" class="exp-action exp-press btn btn-primary h-12 min-w-52 gap-2 rounded-xl px-7 text-base shadow-lg shadow-primary/20">
+      <span class="loading loading-spinner loading-sm htmx-indicator"></span>
+      <span class="exp-action-label">Enviar minha ideia</span>
+      <svg class="size-4"><use href="#i-arrow-right"/></svg>
+    </button>
+  </div>
+</form>

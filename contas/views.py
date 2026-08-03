@@ -3,19 +3,47 @@
 Gerencia o ciclo de vida da sessão (login/logout), criação de contas por admins
 e o fluxo de segurança para redefinição e troca obrigatória de senhas.
 """
-from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout, update_session_auth_hash
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views import View
 from django.http import HttpRequest, HttpResponse
-from .forms import FormularioTrocaSenhaPrimeiroLogin, FormularioCriacaoUsuarioCustomizado, FormularioResetarSenha
+from django.urls import reverse
+from .forms import (
+    FormularioLogin,
+    FormularioTrocaSenhaPrimeiroLogin,
+    FormularioCriacaoUsuarioCustomizado,
+    FormularioResetarSenha,
+)
 from catalisa.decorators import acesso_administrador
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 from typing import Union
 
 User = get_user_model()
+
+
+def requisicao_htmx(request: HttpRequest) -> bool:
+    """Indica se a requisição foi disparada pelo HTMX."""
+    return request.headers.get("HX-Request") == "true"
+
+
+def redireciona_htmx(destino: str) -> HttpResponse:
+    """
+    Constrói a resposta que faz o HTMX navegar para outra página.
+
+    O HTMX substitui apenas fragmentos da tela; para trocar de página após um
+    envio bem-sucedido é necessário devolver o cabeçalho `HX-Redirect`.
+
+    Args:
+        destino (str): Nome da rota para onde o navegador deve ir.
+
+    Returns:
+        HttpResponse: Resposta vazia com a instrução de redirecionamento.
+    """
+    resposta = HttpResponse(status=204)
+    resposta["HX-Redirect"] = reverse(destino)
+    return resposta
 
 def home(request: HttpRequest) -> HttpResponse:
     """
@@ -36,7 +64,8 @@ def cadastro_view(request: HttpRequest) -> HttpResponse:
     Renderiza e processa o formulário de criação de novos usuários.
 
     Restrita a usuários com permissão de administrador através do decorator
-    `@acesso_administrador`. Após o sucesso, redireciona para a tela de login.
+    `@acesso_administrador`. Após o sucesso o administrador permanece na tela,
+    com o formulário limpo, para cadastrar outro colaborador em sequência.
 
     Args:
         request: Objeto de requisição HTTP
@@ -47,9 +76,21 @@ def cadastro_view(request: HttpRequest) -> HttpResponse:
     if request.method == 'POST':
         user_form = FormularioCriacaoUsuarioCustomizado(request.POST)
         if user_form.is_valid():
-            user_form.save()
-            return redirect('login')
-    
+            usuario = user_form.save()
+            messages.success(
+                request,
+                f"Usuário {usuario.username} criado com sucesso. "
+                "Ele deverá trocar a senha no primeiro acesso."
+            )
+
+            if requisicao_htmx(request):
+                return redireciona_htmx('cadastro')
+
+            return redirect('cadastro')
+
+        if requisicao_htmx(request):
+            return render(request, 'partials/_form_cadastro_usuario.html', {'user_form': user_form})
+
     else:
         user_form = FormularioCriacaoUsuarioCustomizado()
 
@@ -74,18 +115,25 @@ def login_view(request: HttpRequest) -> HttpResponse:
         return redirect("cadastrar_ideia")
 
     if request.method == 'POST':
-        login_form = AuthenticationForm(request, data=request.POST)
+        login_form = FormularioLogin(request, data=request.POST)
 
         if login_form.is_valid():
             user = login_form.get_user()
             login(request, user)
+
+            if requisicao_htmx(request):
+                return redireciona_htmx("cadastrar_ideia")
+
             return redirect("cadastrar_ideia")
-        
+
         else:
-            login_form.add_error(None, 'Usuário ou Senha Inválidos')
+            #login_form.add_error(None, 'Usuário ou Senha Inválidos')
+
+            if requisicao_htmx(request):
+                return render(request, 'partials/_form_login.html', {'login_form': login_form})
 
     else:
-        login_form = AuthenticationForm()
+        login_form = FormularioLogin()
 
     return render(request, 'login.html', {'login_form': login_form})
 
@@ -130,7 +178,15 @@ class ViewTrocaSenhaPrimeiroLogin(LoginRequiredMixin,View):
             #Mantém a sessão ativa após a troca de senha (evita logout por mudança de hash)
             update_session_auth_hash(request,user)
 
+            messages.success(request, "Senha atualizada com sucesso. Bem-vindo ao Expandir!")
+
+            if requisicao_htmx(request):
+                return redireciona_htmx("cadastrar_ideia")
+
             return redirect("cadastrar_ideia")
+
+        if requisicao_htmx(request):
+            return render(request, "partials/_form_troca_senha.html", {"form": form})
 
         return render(request,self.template_name, {"form":form})
     
@@ -156,7 +212,14 @@ def resetar_senha_usuario(request: HttpRequest) -> HttpResponse:
                 request,
                 f"Senha do usuário {user.username} foi redefinida com sucesso."
             )
+
+            if requisicao_htmx(request):
+                return redireciona_htmx("resetar_senha")
+
             return redirect("resetar_senha")
+
+        if requisicao_htmx(request):
+            return render(request, "partials/_form_resetar_senha.html", {"form": form})
     else:
         form = FormularioResetarSenha()
 

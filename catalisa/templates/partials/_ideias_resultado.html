@@ -1,0 +1,177 @@
+{% comment %}
+Fragmento com a grade de ideias e a paginação.
+
+É o alvo do HTMX na busca, nos filtros e na navegação entre páginas: só este
+trecho é substituído, o restante da tela permanece intacto.
+{% endcomment %}
+
+<div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+  <p class="text-sm text-base-content/60">
+    {% if filtros_ativos %}
+      <b class="font-semibold text-base-content">{{ total_filtrado }}</b>
+      resultado{{ total_filtrado|pluralize }} para os filtros aplicados
+      <span class="text-base-content/40">· de {{ total_ideias }} no total</span>
+    {% else %}
+      Exibindo <b class="font-semibold text-base-content">{{ ideias|length }}</b>
+      de {{ total_ideias }} ideia{{ total_ideias|pluralize }}
+    {% endif %}
+  </p>
+
+  {% if ideias.paginator.num_pages > 1 %}
+    <span class="badge badge-ghost rounded-full border-base-300 px-3 py-3 text-xs font-medium">
+      Página {{ ideias.number }} de {{ ideias.paginator.num_pages }}
+    </span>
+  {% endif %}
+</div>
+
+{% if ideias %}
+
+  <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+    {% for ideia in ideias %}
+      <article class="exp-surface exp-lift exp-fade-up flex flex-col overflow-hidden"
+               style="animation-delay: {{ forloop.counter0 }}0ms">
+
+        <div class="flex items-start justify-between gap-3 px-6 pt-6">
+          <span class="badge rounded-full border-primary/15 bg-primary/10 px-3 py-3 text-[11px] font-bold uppercase tracking-wider text-primary">
+            #{{ ideia.id }}
+          </span>
+
+          <span class="badge rounded-full px-3 py-3 text-[11px] font-semibold
+                       {% if ideia.forma_de_participacao == 'GRP' %}border-secondary/20 bg-secondary/10 text-secondary{% else %}border-base-300 bg-base-200 text-base-content/60{% endif %}">
+            {{ ideia.get_forma_de_participacao_display }}
+          </span>
+        </div>
+
+        <div class="flex-1 px-6 pt-3">
+          <h3 class="text-lg font-semibold leading-snug tracking-tight text-base-content">
+            {{ ideia.titulo }}
+          </h3>
+
+          <p class="exp-clamp-2 mt-2.5 text-sm leading-relaxed text-base-content/60">
+            {{ ideia.descricao_ideia }}
+          </p>
+
+          <dl class="mt-5 grid gap-2.5 border-t border-base-300/60 pt-4 text-sm">
+            <div class="flex items-center gap-2.5 text-base-content/70">
+              <svg class="size-4 shrink-0 text-base-content/35"><use href="#i-user"/></svg>
+              <dd class="min-w-0 truncate">{{ ideia.nome_autor }}</dd>
+            </div>
+            <div class="flex items-center gap-2.5 text-base-content/70">
+              <svg class="size-4 shrink-0 text-base-content/35"><use href="#i-building"/></svg>
+              <dd class="min-w-0 truncate">{{ ideia.unidade_fabril }} · {{ ideia.departamento }}</dd>
+            </div>
+            <div class="flex items-center gap-2.5 text-base-content/70">
+              <svg class="size-4 shrink-0 text-base-content/35"><use href="#i-calendar"/></svg>
+              <dd>{{ ideia.criado_em|date:"d/m/Y" }} às {{ ideia.criado_em|time:"H:i" }}</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="mt-5 border-t border-base-300/60 bg-base-200/40 px-6 py-4">
+          <button type="button"
+                  class="exp-action exp-press btn btn-primary btn-sm w-full gap-2 rounded-xl"
+                  hx-get="{% url 'detalhe_ideia' ideia.id %}"
+                  hx-target="#exp-modal"
+                  hx-swap="innerHTML"
+                  hx-indicator="this">
+            <span class="loading loading-spinner loading-xs htmx-indicator"></span>
+            <span class="exp-action-label">Ver ideia completa</span>
+            <svg class="size-4"><use href="#i-arrow-right"/></svg>
+          </button>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+
+  {# ==================== PAGINAÇÃO ==================== #}
+  {% if ideias.has_other_pages %}
+    <nav class="mt-8 flex flex-wrap items-center justify-center gap-2" aria-label="Paginação">
+      {% if ideias.has_previous %}
+        <button type="button" class="btn btn-ghost btn-sm gap-1 rounded-xl"
+                hx-get="{% querystring page=1 %}"
+                hx-target="#resultado-ideias" hx-swap="innerHTML"
+                hx-indicator="#resultado-ideias" hx-push-url="true">
+          <svg class="size-4"><use href="#i-chev-first"/></svg>
+          <span class="hidden sm:inline">Primeira</span>
+        </button>
+        <button type="button" class="btn btn-outline btn-sm gap-1 rounded-xl border-base-300"
+                hx-get="{% querystring page=ideias.previous_page_number %}"
+                hx-target="#resultado-ideias" hx-swap="innerHTML"
+                hx-indicator="#resultado-ideias" hx-push-url="true">
+          <svg class="size-4"><use href="#i-chev-left"/></svg>
+          Anterior
+        </button>
+      {% else %}
+        <button type="button" class="btn btn-ghost btn-sm rounded-xl" disabled>
+          <svg class="size-4"><use href="#i-chev-left"/></svg>
+          Anterior
+        </button>
+      {% endif %}
+
+      <span class="mx-1 rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-content">
+        {{ ideias.number }} / {{ ideias.paginator.num_pages }}
+      </span>
+
+      {% if ideias.has_next %}
+        <button type="button" class="btn btn-outline btn-sm gap-1 rounded-xl border-base-300"
+                hx-get="{% querystring page=ideias.next_page_number %}"
+                hx-target="#resultado-ideias" hx-swap="innerHTML"
+                hx-indicator="#resultado-ideias" hx-push-url="true">
+          Próxima
+          <svg class="size-4"><use href="#i-chev-right"/></svg>
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm gap-1 rounded-xl"
+                hx-get="{% querystring page=ideias.paginator.num_pages %}"
+                hx-target="#resultado-ideias" hx-swap="innerHTML"
+                hx-indicator="#resultado-ideias" hx-push-url="true">
+          <span class="hidden sm:inline">Última</span>
+          <svg class="size-4"><use href="#i-chev-last"/></svg>
+        </button>
+      {% else %}
+        <button type="button" class="btn btn-ghost btn-sm rounded-xl" disabled>
+          Próxima
+          <svg class="size-4"><use href="#i-chev-right"/></svg>
+        </button>
+      {% endif %}
+    </nav>
+  {% endif %}
+
+{% else %}
+
+  {# ==================== ESTADO VAZIO ==================== #}
+  <div class="exp-surface exp-fade-up flex flex-col items-center gap-4 px-6 py-16 text-center">
+    <span class="grid size-16 place-items-center rounded-2xl bg-base-200 text-base-content/35">
+      <svg class="size-8"><use href="#i-inbox"/></svg>
+    </span>
+
+    {% if filtros_ativos %}
+      <div>
+        <h3 class="text-lg font-semibold text-base-content">Nenhuma ideia encontrada</h3>
+        <p class="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-base-content/60">
+          Não há ideias que correspondam aos filtros aplicados. Tente outro termo
+          de busca ou limpe os filtros para ver tudo novamente.
+        </p>
+      </div>
+      <button type="button" class="btn btn-primary btn-sm gap-2 rounded-xl"
+              hx-get="{% url 'listar_ideias' %}"
+              hx-target="#resultado-ideias" hx-swap="innerHTML" hx-push-url="true"
+              hx-on:click="document.getElementById('filtros-ideias').reset()">
+        <svg class="size-4"><use href="#i-refresh"/></svg>
+        Limpar filtros
+      </button>
+    {% else %}
+      <div>
+        <h3 class="text-lg font-semibold text-base-content">Nenhuma ideia cadastrada ainda</h3>
+        <p class="mx-auto mt-1.5 max-w-md text-sm leading-relaxed text-base-content/60">
+          Assim que os colaboradores começarem a enviar propostas pelo Expandir,
+          elas aparecerão aqui.
+        </p>
+      </div>
+      <a href="{% url 'cadastrar_ideia' %}" class="btn btn-primary btn-sm gap-2 rounded-xl">
+        <svg class="size-4"><use href="#i-plus"/></svg>
+        Cadastrar a primeira ideia
+      </a>
+    {% endif %}
+  </div>
+
+{% endif %}

@@ -1,0 +1,475 @@
+/* ==========================================================================
+   Programa Expandir — Grupo Flexível
+   Design tokens + tema daisyUI derivados da identidade visual oficial.
+   Paleta extraída dos arquivos de marca:
+     teal profundo  #003d3d
+     gradiente      #f27121 → #f06929 → #ec5440 → #e94057
+     grafite        #2e2d2c
+   Este arquivo é carregado DEPOIS do daisyUI e fica fora de @layer,
+   portanto sempre vence as regras do framework. Todo estilo próprio usa
+   o prefixo .exp-* para nunca disputar com utilitários do Tailwind.
+   ========================================================================== */
+
+[data-theme="expandir"] {
+  color-scheme: light;
+
+  --color-base-100: #ffffff;
+  --color-base-200: #f4f7f6;
+  --color-base-300: #e3ebe9;
+  --color-base-content: #16211f;
+
+  --color-primary: #003d3d;
+  --color-primary-content: #e9fbf6;
+
+  --color-secondary: #f27121;
+  --color-secondary-content: #2a1704;
+
+  --color-accent: #e94057;
+  --color-accent-content: #fff2f4;
+
+  --color-neutral: #2e2d2c;
+  --color-neutral-content: #f5f5f4;
+
+  --color-info: #0e7490;
+  --color-info-content: #ecfeff;
+  --color-success: #0f7a4f;
+  --color-success-content: #ecfdf5;
+  --color-warning: #b45309;
+  --color-warning-content: #fffbeb;
+  --color-error: #be123c;
+  --color-error-content: #fff1f2;
+
+  --radius-selector: 0.75rem;
+  --radius-field: 0.75rem;
+  --radius-box: 1.25rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 1px;
+  --depth: 0;
+  --noise: 0;
+
+  /* tokens próprios do programa */
+  --exp-gradient: linear-gradient(100deg, #f27121 0%, #f06929 26%, #ec5440 66%, #e94057 100%);
+  --exp-gradient-soft: linear-gradient(100deg, rgba(242, 113, 33, 0.12) 0%, rgba(233, 64, 87, 0.12) 100%);
+  --exp-teal-deep: #003d3d;
+  --exp-teal-800: #05514e;
+  --exp-teal-700: #0a6663;
+  --exp-shadow-sm: 0 1px 2px rgba(0, 61, 61, 0.06), 0 1px 3px rgba(0, 61, 61, 0.04);
+  --exp-shadow-md: 0 10px 30px -12px rgba(0, 61, 61, 0.18), 0 2px 8px rgba(0, 61, 61, 0.05);
+  --exp-shadow-lg: 0 30px 60px -25px rgba(0, 61, 61, 0.28), 0 8px 20px -12px rgba(0, 61, 61, 0.12);
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: "Inter", "Segoe UI Variable", "Segoe UI", system-ui, -apple-system,
+    "Helvetica Neue", sans-serif;
+  font-feature-settings: "cv02", "cv03", "cv04", "ss01";
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(242, 113, 33, 0.22);
+  color: #16211f;
+}
+
+:where(a, button, summary, input, select, textarea):focus-visible {
+  outline: 2px solid var(--exp-teal-700);
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+/* Scrollbar discreta e alinhada à marca */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #c3d2ce transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #cbd8d4;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  border-radius: 999px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #a9bcb7;
+  background-clip: content-box;
+}
+
+/* --------------------------------------------------------------------------
+   Superfícies e ornamentos de marca
+   -------------------------------------------------------------------------- */
+
+.exp-app-bg {
+  background-color: #f4f7f6;
+  background-image:
+    radial-gradient(1100px 520px at 12% -8%, rgba(0, 61, 61, 0.09), transparent 62%),
+    radial-gradient(880px 460px at 105% 4%, rgba(242, 113, 33, 0.10), transparent 60%),
+    radial-gradient(700px 700px at 50% 118%, rgba(233, 64, 87, 0.06), transparent 65%);
+  background-attachment: fixed;
+}
+
+.exp-gradient-text {
+  background: var(--exp-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.exp-gradient-bg {
+  background: var(--exp-gradient);
+}
+
+/* Faixa fina de gradiente usada no topo de cards e do navbar */
+.exp-topline::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 3px;
+  background: var(--exp-gradient);
+  opacity: 0.95;
+}
+
+.exp-surface {
+  position: relative;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 61, 61, 0.08);
+  border-radius: var(--radius-box);
+  box-shadow: var(--exp-shadow-md);
+}
+
+.exp-navbar {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid rgba(0, 61, 61, 0.08);
+}
+
+.exp-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #003d3d 0%, #05514e 55%, #0a6663 100%);
+  color: #eafaf5;
+}
+
+.exp-hero::after {
+  content: "";
+  position: absolute;
+  right: -12%;
+  top: -55%;
+  width: 620px;
+  height: 620px;
+  background: var(--exp-gradient);
+  filter: blur(90px);
+  opacity: 0.28;
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Interações
+   -------------------------------------------------------------------------- */
+
+.exp-lift {
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 0.25s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.25s ease;
+}
+.exp-lift:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--exp-shadow-lg);
+  border-color: rgba(242, 113, 33, 0.35);
+}
+
+.exp-press {
+  transition: transform 0.12s ease;
+}
+.exp-press:active {
+  transform: scale(0.98);
+}
+
+@keyframes exp-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.exp-fade-up {
+  animation: exp-fade-up 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Formulários renderizados pelo Django
+   As classes daisyUI são aplicadas nos widgets (forms.py); aqui ficam apenas
+   os ajustes que o framework não cobre.
+   -------------------------------------------------------------------------- */
+
+.exp-label {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #16211f;
+  margin-bottom: 0.5rem;
+  line-height: 1.45;
+}
+
+.exp-field textarea {
+  min-height: 7rem;
+  line-height: 1.6;
+}
+
+.exp-field .helptext,
+.exp-field .exp-help {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #5b6b68;
+  line-height: 1.5;
+}
+
+/* Lista de erros padrão do Django */
+.exp-field ul.errorlist {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.375rem;
+}
+
+.exp-field ul.errorlist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #9f1239;
+  background: #fff1f2;
+  border: 1px solid #fecdd3;
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.exp-field ul.errorlist li::before {
+  content: "!";
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: #be123c;
+  color: #fff;
+  font-size: 0.7rem;
+  line-height: 1rem;
+  text-align: center;
+}
+
+/* Campo com erro: destaca a borda do controle */
+.exp-field--invalid input,
+.exp-field--invalid select,
+.exp-field--invalid textarea {
+  border-color: #be123c;
+  background-color: #fffafb;
+}
+
+/* Espaço para o botão de mostrar/ocultar senha */
+.exp-field .relative > input {
+  padding-right: 3rem;
+}
+
+/* O Edge desenha um botão nativo de revelar senha ao digitar; usamos o nosso */
+.exp-field .relative > input::-ms-reveal,
+.exp-field .relative > input::-ms-clear {
+  display: none;
+}
+
+/* Grupos de radio/checkbox: o Django envolve as opções em <div><div><label> */
+.exp-choices > div {
+  display: grid;
+  gap: 0.625rem;
+}
+
+@media (min-width: 640px) {
+  .exp-choices--cols > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.exp-choices > div label,
+label.exp-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid rgba(0, 61, 61, 0.12);
+  border-radius: 0.875rem;
+  background: #fff;
+  font-size: 0.925rem;
+  font-weight: 500;
+  color: #16211f;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background-color 0.2s ease,
+    box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+/* Este arquivo fica fora de @layer e o `.hidden` do Tailwind mora em
+   @layer utilities, que perde para qualquer regra não-layered. Sem restaurar o
+   display:none aqui, esconder uma opção por classe (busca do picker, exclusão
+   do autor) não teria efeito nenhum. */
+.exp-choices > div label.hidden,
+label.exp-choice.hidden {
+  display: none;
+}
+
+.exp-choices > div label:hover,
+label.exp-choice:hover {
+  border-color: rgba(242, 113, 33, 0.5);
+  background: #fffaf6;
+  transform: translateY(-1px);
+  box-shadow: var(--exp-shadow-sm);
+}
+
+.exp-choices > div label:has(input:checked),
+label.exp-choice:has(input:checked) {
+  border-color: #003d3d;
+  background: #f0f7f5;
+  box-shadow: 0 0 0 1px #003d3d inset;
+}
+
+.exp-choices input,
+label.exp-choice input {
+  flex: none;
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: #003d3d;
+  cursor: pointer;
+}
+
+.exp-choices > div label:has(input:disabled),
+label.exp-choice:has(input:disabled) {
+  cursor: not-allowed;
+  background: #fafbfb;
+  transform: none;
+}
+
+/* Fundo escurecido atrás dos modais */
+dialog.modal::backdrop {
+  background: rgba(3, 26, 25, 0.5);
+  backdrop-filter: blur(3px);
+}
+
+/* --------------------------------------------------------------------------
+   HTMX — estados de carregamento
+   -------------------------------------------------------------------------- */
+
+.htmx-indicator {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  opacity: 1;
+}
+
+/* Conteúdo sendo trocado esmaece suavemente */
+.exp-swap.htmx-request {
+  opacity: 0.45;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* Barra de progresso global no topo da janela */
+#exp-progress {
+  position: fixed;
+  inset-inline: 0;
+  top: 0;
+  height: 3px;
+  z-index: 100;
+  background: var(--exp-gradient);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  pointer-events: none;
+}
+#exp-progress.is-loading {
+  opacity: 1;
+  transform: scaleX(0.75);
+  transition: transform 8s cubic-bezier(0.1, 0.9, 0.2, 1), opacity 0.15s ease;
+}
+#exp-progress.is-done {
+  opacity: 0;
+  transform: scaleX(1);
+  transition: transform 0.2s ease, opacity 0.4s ease 0.1s;
+}
+
+/* Spinner do daisyUI usado como indicador: só ocupa espaço quando ativo */
+.htmx-indicator.loading {
+  display: none;
+}
+.htmx-request .htmx-indicator.loading,
+.htmx-request.htmx-indicator.loading {
+  display: inline-block;
+  opacity: 1;
+}
+
+/* Rótulo do botão esmaece enquanto a requisição acontece */
+.exp-action-label {
+  transition: opacity 0.15s ease;
+}
+.htmx-request .exp-action-label,
+.htmx-request.exp-action .exp-action-label {
+  opacity: 0.6;
+}
+
+/* --------------------------------------------------------------------------
+   Detalhes de conteúdo
+   -------------------------------------------------------------------------- */
+
+.exp-answer {
+  white-space: pre-line;
+  line-height: 1.7;
+  color: #33413e;
+}
+
+.exp-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.exp-scroll-shadow {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media print {
+  .exp-no-print {
+    display: none !important;
+  }
+}

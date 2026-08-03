@@ -1,0 +1,73 @@
+{% comment %}
+Formulário administrativo de redefinição de senha de um colaborador.
+{% endcomment %}
+<form method="post"
+      action="{% url 'resetar_senha' %}"
+      id="form-resetar-senha"
+      hx-post="{% url 'resetar_senha' %}"
+      hx-target="this"
+      hx-swap="outerHTML"
+      hx-disabled-elt="find button[type=submit]"
+      class="grid gap-6">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-error exp-fade-up items-start gap-3 rounded-2xl border-error/20 bg-error/10">
+      <svg class="mt-0.5 size-5 shrink-0 text-error"><use href="#i-alert"/></svg>
+      <div class="text-sm leading-relaxed text-error">
+        {% for erro in form.non_field_errors %}<p class="font-medium">{{ erro }}</p>{% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <section class="exp-surface exp-topline overflow-hidden">
+    <header class="flex items-start gap-4 border-b border-base-300/60 px-6 py-5 sm:px-8">
+      <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+        <svg class="size-5"><use href="#i-user"/></svg>
+      </span>
+      <div>
+        <h2 class="text-lg font-semibold tracking-tight text-primary">Colaborador</h2>
+        <p class="mt-0.5 text-sm text-base-content/60">Informe o usuário que perdeu o acesso.</p>
+      </div>
+    </header>
+
+    <div class="px-6 py-6 sm:px-8">
+      {% include "partials/_campo.html" with campo=form.username ajuda="É o nome de usuário do login, não o nome completo." %}
+    </div>
+  </section>
+
+  <section class="exp-surface exp-topline overflow-hidden">
+    <header class="flex items-start gap-4 border-b border-base-300/60 px-6 py-5 sm:px-8">
+      <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+        <svg class="size-5"><use href="#i-key"/></svg>
+      </span>
+      <div>
+        <h2 class="text-lg font-semibold tracking-tight text-primary">Senha temporária</h2>
+        <p class="mt-0.5 text-sm text-base-content/60">Será trocada pelo colaborador no próximo acesso.</p>
+      </div>
+    </header>
+
+    <div class="grid gap-5 px-6 py-6 sm:grid-cols-2 sm:px-8">
+      {% include "partials/_campo_senha.html" with campo=form.new_password1 sem_ajuda=True %}
+      {% include "partials/_campo_senha.html" with campo=form.new_password2 sem_ajuda=True %}
+
+      <div class="flex items-start gap-3 rounded-2xl border border-warning/25 bg-warning/5 p-4 sm:col-span-2">
+        <svg class="mt-0.5 size-4 shrink-0 text-warning"><use href="#i-alert"/></svg>
+        <p class="text-xs leading-relaxed text-base-content/65">
+          Ao confirmar, a senha atual do colaborador deixa de funcionar imediatamente
+          e ele será obrigado a definir uma nova no próximo login.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+    <a href="{% url 'cadastro' %}" class="btn btn-ghost h-12 rounded-xl">Cadastrar usuário</a>
+    <button type="submit"
+            class="exp-action exp-press btn btn-primary h-12 min-w-48 gap-2 rounded-xl px-7 text-base shadow-lg shadow-primary/20">
+      <span class="loading loading-spinner loading-sm htmx-indicator"></span>
+      <span class="exp-action-label">Redefinir senha</span>
+      <svg class="size-4"><use href="#i-refresh"/></svg>
+    </button>
+  </div>
+</form>

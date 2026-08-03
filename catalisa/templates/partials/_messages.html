@@ -1,0 +1,22 @@
+{% comment %}
+Mensagens do django.contrib.messages renderizadas como toasts daisyUI.
+Some sozinho após alguns segundos (ver static/js/expandir.js).
+{% endcomment %}
+{% if messages %}
+  {% for message in messages %}
+    <div class="exp-toast alert exp-fade-up w-[min(24rem,calc(100vw-2rem))] items-start gap-3 rounded-2xl border shadow-lg
+                {% if message.tags == 'success' %}alert-success
+                {% elif message.tags == 'error' %}alert-error
+                {% elif message.tags == 'warning' %}alert-warning
+                {% else %}alert-info{% endif %}"
+         role="status">
+      <svg class="size-5 shrink-0">
+        <use href="{% if message.tags == 'success' %}#i-check-circle{% elif message.tags == 'error' or message.tags == 'warning' %}#i-alert{% else %}#i-info{% endif %}"/>
+      </svg>
+      <span class="flex-1 text-sm font-medium leading-snug">{{ message }}</span>
+      <button type="button" class="btn btn-ghost btn-xs btn-circle" data-dismiss-toast aria-label="Fechar">
+        <svg class="size-4"><use href="#i-close"/></svg>
+      </button>
+    </div>
+  {% endfor %}
+{% endif %}

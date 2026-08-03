@@ -1,0 +1,130 @@
+{% load static %}<!DOCTYPE html>
+<html lang="pt-BR" data-theme="expandir">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#003d3d">
+  <title>{% block title %}Acesso{% endblock %} · Expandir</title>
+
+  <link rel="icon" type="image/svg+xml" href="{% static 'brand/expandir-icone.svg' %}">
+  <link rel="apple-touch-icon" href="{% static 'brand/expandir-icone.png' %}">
+
+  <style>@layer theme, base, components, utilities;</style>
+  <link rel="stylesheet" href="{% static 'vendor/daisyui.css' %}">
+  <link rel="stylesheet" href="{% static 'css/expandir.css' %}">
+  <script src="{% static 'vendor/tailwind-browser.js' %}"></script>
+  <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="min-h-screen bg-base-200 text-base-content antialiased"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+
+  {% include "partials/_icons.html" %}
+  <div id="exp-progress"></div>
+
+  <div class="grid min-h-screen lg:grid-cols-[1.05fr_1fr] xl:grid-cols-[1.15fr_1fr]">
+
+    {# ======================= PAINEL DE MARCA ======================= #}
+    <aside class="exp-hero relative hidden flex-col justify-between p-12 lg:flex xl:p-16">
+      <div class="relative z-10">
+        <img src="{% static 'brand/expandir-logo-white.svg' %}" alt="Expandir" class="h-12 w-auto">
+      </div>
+
+      <div class="relative z-10 max-w-lg">
+        <p class="mb-5 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-white/85 backdrop-blur">
+          <svg class="size-3.5"><use href="#i-sparkles"/></svg>
+          Programa de ideias
+        </p>
+
+        <h2 class="text-4xl font-bold leading-[1.15] tracking-tight text-white xl:text-5xl">
+          {% block aside_title %}Boas ideias movem<br>a operação inteira.{% endblock %}
+        </h2>
+
+        <p class="mt-5 text-base leading-relaxed text-white/70">
+          {% block aside_text %}
+            O Expandir é o canal do Grupo Flexível para registrar oportunidades de
+            melhoria contínua. Cada ideia enviada é analisada pelo time responsável.
+          {% endblock %}
+        </p>
+
+        <ul class="mt-10 grid gap-4">
+          {% block aside_list %}
+            <li class="flex items-start gap-3.5">
+              <span class="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-white/10 text-white">
+                <svg class="size-4"><use href="#i-bulb"/></svg>
+              </span>
+              <span class="text-sm leading-relaxed text-white/75">
+                <b class="font-semibold text-white">Registre</b> o problema e a solução que você enxerga no dia a dia.
+              </span>
+            </li>
+            <li class="flex items-start gap-3.5">
+              <span class="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-white/10 text-white">
+                <svg class="size-4"><use href="#i-users"/></svg>
+              </span>
+              <span class="text-sm leading-relaxed text-white/75">
+                <b class="font-semibold text-white">Participe</b> sozinho ou em equipe, com até três integrantes.
+              </span>
+            </li>
+            <li class="flex items-start gap-3.5">
+              <span class="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-white/10 text-white">
+                <svg class="size-4"><use href="#i-trending"/></svg>
+              </span>
+              <span class="text-sm leading-relaxed text-white/75">
+                <b class="font-semibold text-white">Acompanhe</b> o impacto das ideias que viram projeto.
+              </span>
+            </li>
+          {% endblock %}
+        </ul>
+      </div>
+
+      <div class="relative z-10 flex items-center gap-4 border-t border-white/15 pt-8">
+        <img src="{% static 'logo.png' %}" alt="Grupo Flexível"
+             class="h-9 w-auto brightness-0 invert opacity-90">
+        <p class="text-xs leading-relaxed text-white/55">
+          Uma iniciativa de melhoria contínua<br>do Grupo Flexível.
+        </p>
+      </div>
+    </aside>
+
+    {# ======================= PAINEL DO FORMULÁRIO ======================= #}
+    <main class="exp-app-bg flex items-center justify-center px-4 py-10 sm:px-8 lg:px-12">
+      <div class="exp-fade-up w-full max-w-md">
+
+        <div class="mb-8 flex flex-col items-center gap-6 lg:hidden">
+          <img src="{% static 'brand/expandir-logo-color.svg' %}" alt="Expandir" class="h-11 w-auto">
+        </div>
+
+        <div class="exp-surface exp-topline overflow-hidden p-7 sm:p-9">
+          <div class="mb-7">
+            {% block auth_badge %}{% endblock %}
+            <h1 class="mt-3 text-2xl font-bold tracking-tight text-primary sm:text-[1.7rem]">
+              {% block auth_title %}{% endblock %}
+            </h1>
+            <p class="mt-1.5 text-sm leading-relaxed text-base-content/60">
+              {% block auth_subtitle %}{% endblock %}
+            </p>
+          </div>
+
+          {% block content %}{% endblock %}
+        </div>
+
+        <p class="mt-6 text-center text-xs text-base-content/45">
+          {% block auth_footer %}
+            Problemas com o acesso? Procure o time de Sistemas do Grupo Flexível.
+          {% endblock %}
+        </p>
+      </div>
+    </main>
+  </div>
+
+  <div id="exp-toasts" class="toast toast-top toast-end z-[70]">
+    {% include "partials/_messages.html" %}
+  </div>
+  <div id="exp-modal"></div>
+
+  <script src="{% static 'js/expandir.js' %}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -2,85 +2,46 @@
 
 {% block title %}Resetar senha{% endblock %}
 
-{% block badge %}🔐 Administração{% endblock %}
-{% block hero_title %}Resetar senha de usuário{% endblock %}
-{% block hero_description %}
-Informe o usuário e defina uma nova senha temporária.
+{% block page_badge %}
+  <span class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
+    <svg class="size-3.5"><use href="#i-shield"/></svg>
+    Área administrativa
+  </span>
 {% endblock %}
 
-{% block section_title %}Redefinição de senha{% endblock %}
-{% block section_description %}
-O usuário será obrigado a trocar a senha no próximo login.
-{% endblock %}
+{% block page_title %}Resetar senha de usuário{% endblock %}
 
-{% block alerts %}
-  {% if messages %}
-    {% for message in messages %}
-      <div class="alert alert-success">
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
-
-  {% if form.non_field_errors %}
-    <div class="alert alert-danger">
-      {% for error in form.non_field_errors %}
-        <p style="margin: 0;">{{ error }}</p>
-      {% endfor %}
-    </div>
-  {% endif %}
+{% block page_subtitle %}
+  Defina uma senha temporária para um colaborador que perdeu o acesso.
+  A troca por uma senha pessoal será exigida no próximo login dele.
 {% endblock %}
 
 {% block content %}
-<form method="post">
-  {% csrf_token %}
-
-  <div class="section">
-    <div class="section-header">
-      <h3>Dados do usuário</h3>
-      <span class="section-tag">Admin</span>
+  <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
+    <div class="min-w-0">
+      {% include "partials/_form_resetar_senha.html" %}
     </div>
 
-    <div class="grid">
-      <!-- USERNAME -->
-      <div class="col-12">
-        <label for="{{ form.username.id_for_label }}">Usuário</label>
-        {{ form.username }}
-        {{ form.username.errors }}
-      </div>
-    </div>
-  </div>
-
-  <div class="section">
-    <div class="section-header">
-      <h3>Nova senha</h3>
-      <span class="section-tag">Segurança</span>
-    </div>
-
-    <div class="grid">
-      <!-- NOVA SENHA -->
-      <div class="col-6">
-        <label for="{{ form.new_password1.id_for_label }}">Nova senha</label>
-        {{ form.new_password1 }}
-        {{ form.new_password1.errors }}
+    <aside class="exp-fade-up grid gap-4 lg:sticky lg:top-24">
+      <div class="exp-hero overflow-hidden rounded-[1.25rem] p-6">
+        <div class="relative z-10">
+          <svg class="size-6 text-white/90"><use href="#i-shield"/></svg>
+          <p class="mt-4 text-sm leading-relaxed text-white/80">
+            Confirme a identidade do colaborador antes de redefinir a senha e
+            informe a senha temporária por um canal seguro.
+          </p>
+        </div>
       </div>
 
-      <!-- CONFIRMAR SENHA -->
-      <div class="col-6">
-        <label for="{{ form.new_password2.id_for_label }}">Confirmar nova senha</label>
-        {{ form.new_password2 }}
-        {{ form.new_password2.errors }}
-      </div>
-    </div>
+      <a href="{% url 'cadastro' %}" class="exp-surface exp-lift flex items-center gap-4 p-5 no-underline">
+        <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+          <svg class="size-5"><use href="#i-user-plus"/></svg>
+        </span>
+        <span class="min-w-0">
+          <span class="block text-sm font-semibold">Novo colaborador?</span>
+          <span class="block text-xs leading-relaxed text-base-content/55">Crie um acesso do zero para quem ainda não tem conta.</span>
+        </span>
+      </a>
+    </aside>
   </div>
-
-  <div class="actions">
-    <div class="actions-info">
-      Após o reset, o usuário deverá trocar a senha no próximo acesso.
-    </div>
-    <button type="submit" class="btn">
-      Resetar senha
-    </button>
-  </div>
-</form>
 {% endblock %}

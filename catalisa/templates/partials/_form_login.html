@@ -1,0 +1,35 @@
+{% comment %}
+Formulário de autenticação. Trocado por inteiro pelo HTMX quando as credenciais
+são recusadas; no sucesso a view responde com HX-Redirect.
+{% endcomment %}
+<form method="post"
+      action="{% url 'login' %}"
+      id="form-login"
+      hx-post="{% url 'login' %}"
+      hx-target="this"
+      hx-swap="outerHTML"
+      hx-disabled-elt="find button[type=submit]"
+      class="grid gap-5">
+  {% csrf_token %}
+
+  {% if login_form.non_field_errors %}
+    <div class="alert alert-error exp-fade-up items-start gap-3 rounded-2xl border-error/20 bg-error/10">
+      <svg class="mt-0.5 size-5 shrink-0 text-error"><use href="#i-alert"/></svg>
+      <div class="text-sm leading-relaxed text-error">
+        {% for erro in login_form.non_field_errors %}
+          <p class="font-medium">{{ erro }}</p>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  {% include "partials/_campo.html" with campo=login_form.username %}
+  {% include "partials/_campo_senha.html" with campo=login_form.password %}
+
+  <button type="submit"
+          class="exp-action exp-press btn btn-primary h-12 w-full gap-2 rounded-xl text-base shadow-lg shadow-primary/20">
+    <span class="loading loading-spinner loading-sm htmx-indicator"></span>
+    <span class="exp-action-label">Entrar</span>
+    <svg class="size-4"><use href="#i-arrow-right"/></svg>
+  </button>
+</form>

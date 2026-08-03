@@ -1,0 +1,41 @@
+{% comment %}
+Formulário de definição de nova senha (primeiro acesso ou após reset por um
+administrador). Erros voltam via HTMX; o sucesso redireciona com HX-Redirect.
+{% endcomment %}
+<form method="post"
+      action="{% url 'troca_senha' %}"
+      id="form-troca-senha"
+      hx-post="{% url 'troca_senha' %}"
+      hx-target="this"
+      hx-swap="outerHTML"
+      hx-disabled-elt="find button[type=submit]"
+      class="grid gap-5">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-error exp-fade-up items-start gap-3 rounded-2xl border-error/20 bg-error/10">
+      <svg class="mt-0.5 size-5 shrink-0 text-error"><use href="#i-alert"/></svg>
+      <div class="text-sm leading-relaxed text-error">
+        {% for erro in form.non_field_errors %}<p class="font-medium">{{ erro }}</p>{% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="flex items-start gap-3 rounded-2xl border border-info/20 bg-info/5 p-4">
+    <svg class="mt-0.5 size-4 shrink-0 text-info"><use href="#i-info"/></svg>
+    <p class="text-xs leading-relaxed text-base-content/65">
+      A nova senha precisa ser diferente da atual, ter no mínimo 8 caracteres e
+      não pode ser apenas números ou uma senha muito comum.
+    </p>
+  </div>
+
+  {% include "partials/_campo_senha.html" with campo=form.new_password1 sem_ajuda=True %}
+  {% include "partials/_campo_senha.html" with campo=form.new_password2 sem_ajuda=True %}
+
+  <button type="submit"
+          class="exp-action exp-press btn btn-primary h-12 w-full gap-2 rounded-xl text-base shadow-lg shadow-primary/20">
+    <span class="loading loading-spinner loading-sm htmx-indicator"></span>
+    <span class="exp-action-label">Salvar nova senha</span>
+    <svg class="size-4"><use href="#i-check"/></svg>
+  </button>
+</form>

@@ -17,9 +17,14 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path
-from respostas.views import cadastrar_ideia, listar_ideias, ideia_cadastrada_com_sucesso
+from respostas.views import cadastrar_ideia, detalhe_ideia, listar_ideias, ideia_cadastrada_com_sucesso
 from contas.views import login_view, cadastro_view, ViewTrocaSenhaPrimeiroLogin, resetar_senha_usuario,home
 from django.contrib.auth.views import LogoutView
+
+# Identidade do programa também no painel administrativo do Django
+admin.site.site_header = "Expandir · Administração"
+admin.site.site_title = "Expandir"
+admin.site.index_title = "Programa de ideias do Grupo Flexível"
 
 urlpatterns = [
     path('admin-cat/', admin.site.urls),
@@ -28,6 +33,7 @@ urlpatterns = [
     path("cadastro/", cadastro_view, name="cadastro"),
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     path('ideias/', listar_ideias, name='listar_ideias'),
+    path('ideias/<int:pk>/', detalhe_ideia, name='detalhe_ideia'),
     path('troca_senha/',ViewTrocaSenhaPrimeiroLogin.as_view(), name='troca_senha'),
     path('resetar_senha/', resetar_senha_usuario, name='resetar_senha'),
     path('cadastro_sucesso/',ideia_cadastrada_com_sucesso, name='cadastro_sucesso' ),

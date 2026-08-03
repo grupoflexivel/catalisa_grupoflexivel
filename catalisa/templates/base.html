@@ -1,78 +1,275 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
+{% load static %}<!DOCTYPE html>
+<html lang="pt-BR" data-theme="expandir">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}Sistema{% endblock %}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#003d3d">
+  <meta name="description" content="Expandir — programa de ideias e melhoria contínua do Grupo Flexível.">
+  <title>{% block title %}Expandir{% endblock %} · Expandir</title>
 
-  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="icon" type="image/svg+xml" href="{% static 'brand/expandir-icone.svg' %}">
+  <link rel="apple-touch-icon" href="{% static 'brand/expandir-icone.png' %}">
 
+  {# Ordem das camadas: garante que utilitários do Tailwind vençam componentes do daisyUI #}
+  <style>@layer theme, base, components, utilities;</style>
+  <link rel="stylesheet" href="{% static 'vendor/daisyui.css' %}">
+  <link rel="stylesheet" href="{% static 'css/expandir.css' %}">
+  <script src="{% static 'vendor/tailwind-browser.js' %}"></script>
+  <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+
+  {% block extra_head %}{% endblock %}
 </head>
-<body>
-  <div class="page">
-    <header class="hero">
-      <img src="{% static 'logo.png' %}" alt="Logo" class="hero-logo">
-      <div style="position: absolute; top: 24px; right: 24px; text-align: center;">
+
+<body class="min-h-screen exp-app-bg text-base-content antialiased"
+      hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+
+  {% include "partials/_icons.html" %}
+
+  <div id="exp-progress"></div>
+
+  <a href="#conteudo"
+     class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[80] btn btn-sm btn-primary">
+    Ir para o conteúdo
+  </a>
+
+  {# Rotas usadas para marcar o item de navegação ativo #}
+  {% url 'cadastrar_ideia' as u_ideia %}
+  {% url 'listar_ideias' as u_lista %}
+  {% url 'cadastro' as u_cad %}
+  {% url 'resetar_senha' as u_reset %}
+
+  <div class="drawer">
+    <input id="exp-drawer" type="checkbox" class="drawer-toggle">
+
+    <div class="drawer-content flex min-h-screen flex-col">
+
+      {# ============================ NAVBAR ============================ #}
+      <header class="exp-navbar exp-topline sticky top-0 z-40 exp-no-print">
+        <div class="mx-auto flex h-16 w-full max-w-7xl items-center gap-3 px-4 sm:px-6 lg:px-8">
+
+          <label for="exp-drawer" aria-label="Abrir menu"
+                 class="btn btn-ghost btn-square btn-sm lg:hidden">
+            <svg class="size-5"><use href="#i-menu"/></svg>
+          </label>
+
+          <a href="{% url 'cadastrar_ideia' %}" class="flex items-center gap-3 transition-opacity hover:opacity-80">
+            <img src="{% static 'brand/expandir-logo-color.svg' %}" alt="Expandir"
+                 class="h-8 w-auto sm:h-9">
+          </a>
+
+          {% if user.is_authenticated %}
+            <nav class="ml-4 hidden items-center gap-1 lg:flex">
+              <a href="{{ u_ideia }}"
+                 class="btn btn-sm gap-2 rounded-xl {% if request.path == u_ideia %}btn-primary shadow-sm{% else %}btn-ghost{% endif %}">
+                <svg class="size-4"><use href="#i-bulb"/></svg> Nova ideia
+              </a>
+
+              {% if user.is_superuser %}
+                <a href="{{ u_lista }}"
+                   class="btn btn-sm gap-2 rounded-xl {% if request.path == u_lista %}btn-primary shadow-sm{% else %}btn-ghost{% endif %}">
+                  <svg class="size-4"><use href="#i-list"/></svg> Ideias
+                </a>
+
+                <a href="{{ u_cad }}"
+                   class="btn btn-sm gap-2 rounded-xl {% if request.path == u_cad %}btn-primary shadow-sm{% else %}btn-ghost{% endif %}">
+                  <svg class="size-4"><use href="#i-user-plus"/></svg> Usuários
+                </a>
+
+                <a href="{{ u_reset }}"
+                   class="btn btn-sm gap-2 rounded-xl {% if request.path == u_reset %}btn-primary shadow-sm{% else %}btn-ghost{% endif %}">
+                  <svg class="size-4"><use href="#i-key"/></svg> Senhas
+                </a>
+              {% endif %}
+            </nav>
+          {% endif %}
+
+          <div class="ml-auto flex items-center gap-2">
+            {% if user.is_authenticated %}
+              <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button"
+                     class="btn btn-ghost h-11 gap-2 rounded-xl px-2 pr-3">
+                  <span class="grid size-8 place-items-center rounded-lg bg-primary text-sm font-bold text-primary-content">
+                    {{ user.nome_completo|default:user.username|slice:":1"|upper }}
+                  </span>
+                  <span class="hidden text-left leading-tight sm:block">
+                    <span class="block max-w-[12rem] truncate text-sm font-semibold">
+                      {{ user.nome_completo|default:user.username }}
+                    </span>
+                    <span class="block text-[11px] font-medium text-base-content/55">
+                      {% if user.is_superuser %}Administrador{% else %}Colaborador{% endif %}
+                    </span>
+                  </span>
+                  <svg class="size-4 opacity-60"><use href="#i-chev-down"/></svg>
+                </div>
+
+                <ul tabindex="0"
+                    class="dropdown-content menu z-50 mt-2 w-64 rounded-2xl border border-base-300/70 bg-base-100 p-2 shadow-xl">
+                  <li class="menu-title px-3 pb-1 pt-2">
+                    <span class="text-[11px] uppercase tracking-wider">Conectado como</span>
+                  </li>
+                  <li class="px-3 pb-2">
+                    <span class="pointer-events-none block truncate px-0 text-sm font-semibold">
+                      {{ user.username }}
+                    </span>
+                  </li>
+                  <li>
+                    <a href="{% url 'troca_senha' %}" class="gap-3 rounded-xl">
+                      <svg class="size-4"><use href="#i-lock"/></svg> Alterar minha senha
+                    </a>
+                  </li>
+                  {% comment %}
+                    O botão precisa ser filho direto do <li> para receber o
+                    alinhamento do menu daisyUI; o formulário fica fora da lista
+                    e é referenciado pelo atributo form.
+                  {% endcomment %}
+                  <li>
+                    <button type="submit" form="exp-logout-navbar"
+                            class="gap-3 rounded-xl text-error">
+                      <svg class="size-4"><use href="#i-logout"/></svg> Sair
+                    </button>
+                  </li>
+                </ul>
+
+                <form id="exp-logout-navbar" method="post" action="{% url 'logout' %}" class="hidden">
+                  {% csrf_token %}
+                </form>
+              </div>
+            {% else %}
+              <a href="{% url 'login' %}" class="btn btn-primary btn-sm gap-2 rounded-xl">
+                <svg class="size-4"><use href="#i-lock"/></svg> Entrar
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </header>
+
+      {# ============================ CABEÇALHO DA PÁGINA ============================ #}
+      {% block page_header %}
+        <section class="mx-auto w-full max-w-7xl px-4 pb-2 pt-8 sm:px-6 lg:px-8 lg:pt-10">
+          <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div class="exp-fade-up max-w-3xl">
+              {% block page_badge %}{% endblock %}
+              <h1 class="mt-3 text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+                {% block page_title %}{% endblock %}
+              </h1>
+              <p class="mt-2 text-base leading-relaxed text-base-content/65">
+                {% block page_subtitle %}{% endblock %}
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              {% block page_actions %}{% endblock %}
+            </div>
+          </div>
+        </section>
+      {% endblock %}
+
+      {# ============================ CONTEÚDO ============================ #}
+      <main id="conteudo" class="mx-auto w-full max-w-7xl flex-1 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+        {% block content %}{% endblock %}
+      </main>
+
+      {# ============================ RODAPÉ ============================ #}
+      <footer class="exp-no-print border-t border-base-300/70 bg-base-100/70 backdrop-blur">
+        <div class="mx-auto flex w-full max-w-7xl flex-col items-center gap-5 px-4 py-8 sm:px-6 md:flex-row md:justify-between lg:px-8">
+          <div class="flex items-center gap-4">
+            <img src="{% static 'logo.png' %}" alt="Grupo Flexível" class="h-9 w-auto">
+            <span class="h-8 w-px bg-base-300"></span>
+            <img src="{% static 'brand/expandir-logo-black.svg' %}" alt="Expandir"
+                 class="h-6 w-auto opacity-70">
+          </div>
+          <p class="text-center text-xs leading-relaxed text-base-content/55 md:text-right">
+            Programa Expandir · Melhoria contínua do Grupo Flexível<br class="hidden sm:block">
+            Toda ideia registrada é analisada pelo time de melhoria contínua.
+          </p>
+        </div>
+      </footer>
+    </div>
+
+    {# ============================ DRAWER MOBILE ============================ #}
+    <div class="drawer-side z-50">
+      <label for="exp-drawer" aria-label="Fechar menu" class="drawer-overlay"></label>
+
+      <aside class="flex min-h-full w-80 flex-col bg-base-100">
+        <div class="exp-topline relative flex items-center justify-between border-b border-base-300/70 px-5 py-4">
+          <img src="{% static 'brand/expandir-logo-color.svg' %}" alt="Expandir" class="h-8 w-auto">
+          <label for="exp-drawer" class="btn btn-ghost btn-square btn-sm">
+            <svg class="size-5"><use href="#i-close"/></svg>
+          </label>
+        </div>
+
         {% if user.is_authenticated %}
-          <div class="muted" style="margin-bottom: 6px;">
-            {{ user.username }}
+          <div class="flex items-center gap-3 border-b border-base-300/70 px-5 py-4">
+            <span class="grid size-11 place-items-center rounded-xl bg-primary text-base font-bold text-primary-content">
+              {{ user.nome_completo|default:user.username|slice:":1"|upper }}
+            </span>
+            <div class="min-w-0">
+              <p class="truncate text-sm font-semibold">{{ user.nome_completo|default:user.username }}</p>
+              <p class="text-xs text-base-content/55">
+                {% if user.is_superuser %}Administrador{% else %}Colaborador{% endif %}
+              </p>
+            </div>
           </div>
 
-          <form method="post" action="{% url 'logout' %}" style="display: inline-block;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-secondary">
-              Sair
-            </button>
-          </form>
+          <ul class="menu w-full flex-1 gap-1 px-3 py-4 text-[0.95rem]">
+            <li class="menu-title text-[11px] uppercase tracking-wider">Programa</li>
+            <li>
+              <a href="{% url 'cadastrar_ideia' %}"
+                 class="gap-3 rounded-xl {% if request.path == u_ideia %}menu-active{% endif %}">
+                <svg class="size-5"><use href="#i-bulb"/></svg> Nova ideia
+              </a>
+            </li>
+
+            {% if user.is_superuser %}
+              <li class="menu-title mt-2 text-[11px] uppercase tracking-wider">Administração</li>
+              <li>
+                <a href="{% url 'listar_ideias' %}"
+                   class="gap-3 rounded-xl {% if request.path == u_lista %}menu-active{% endif %}">
+                  <svg class="size-5"><use href="#i-list"/></svg> Ideias cadastradas
+                </a>
+              </li>
+              <li>
+                <a href="{% url 'cadastro' %}"
+                   class="gap-3 rounded-xl {% if request.path == u_cad %}menu-active{% endif %}">
+                  <svg class="size-5"><use href="#i-user-plus"/></svg> Cadastrar usuário
+                </a>
+              </li>
+              <li>
+                <a href="{% url 'resetar_senha' %}"
+                   class="gap-3 rounded-xl {% if request.path == u_reset %}menu-active{% endif %}">
+                  <svg class="size-5"><use href="#i-key"/></svg> Resetar senha
+                </a>
+              </li>
+            {% endif %}
+          </ul>
+
+          <div class="border-t border-base-300/70 p-4">
+            <form method="post" action="{% url 'logout' %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-outline btn-error w-full gap-2 rounded-xl">
+                <svg class="size-4"><use href="#i-logout"/></svg> Sair da conta
+              </button>
+            </form>
+          </div>
+        {% else %}
+          <div class="p-4">
+            <a href="{% url 'login' %}" class="btn btn-primary w-full gap-2 rounded-xl">
+              <svg class="size-4"><use href="#i-lock"/></svg> Entrar
+            </a>
+          </div>
         {% endif %}
-      </div>
-
-      <div class="hero-badge">{% block badge %}Sistema Interno{% endblock %}</div>
-      <h1>{% block hero_title %}Título da página{% endblock %}</h1>
-      <p>{% block hero_description %}Descrição da página ou fluxo principal.{% endblock %}</p>
-    </header>
-
-    {% if user.is_authenticated and user.is_superuser %}
-      <div class="menu-cards">
-        <a href="{% url 'cadastrar_ideia' %}" class="menu-card">
-          <div class="menu-card-title">Cadastrar ideia</div>
-          <div class="menu-card-desc">Criar uma nova ideia no sistema</div>
-        </a>
-
-         <a href="{% url 'cadastro' %}" class="menu-card">
-          <div class="menu-card-title">Cadastrar usuário</div>
-          <div class="menu-card-desc">Cadastrar um novo usuário no sistema</div>
-        </a>
-
-        <a href="{% url 'listar_ideias' %}" class="menu-card">
-          <div class="menu-card-title">Listar ideias</div>
-          <div class="menu-card-desc">Visualizar todas as ideias cadastradas</div>
-        </a>
-        
-        <a href="{% url 'resetar_senha' %}" class="menu-card">
-          <div class="menu-card-title">Resetar senha</div>
-          <div class="menu-card-desc">Redefinir senha de um usuário</div>
-        </a>
-      
-
-        {% block menu_items %}{% endblock %}
-      </div>
-    {% endif %}
-
-    <main class="shell">
-      <div class="shell-header">
-        <h2>{% block section_title %}Conteúdo principal{% endblock %}</h2>
-        <p>{% block section_description %}Subtítulo ou instrução contextual.{% endblock %}</p>
-      </div>
-
-      <div class="shell-body">
-        {% block alerts %}{% endblock %}
-        {% block content %}{% endblock %}
-      </div>
-    </main>
+      </aside>
+    </div>
   </div>
 
+  {# Toasts (mensagens do Django) #}
+  <div id="exp-toasts" class="toast toast-top toast-end z-[70] exp-no-print">
+    {% include "partials/_messages.html" %}
+  </div>
+
+  {# Container global de modais carregados via HTMX #}
+  <div id="exp-modal"></div>
+
+  <script src="{% static 'js/expandir.js' %}" defer></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>
