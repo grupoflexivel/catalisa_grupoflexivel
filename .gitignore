@@ -3,3 +3,10 @@ venv/
 __pycache__/
 *.log
 contas/management/commands/*.csv
+
+# Arquivos de marca originais entregues pelo Marketing (2,3 MB, nomes com
+# espaço e acento). As cópias usadas pela aplicação estão em static/brand/.
+catalisa/newfrontend/
+
+# Configuração local do Claude Code
+.claude/
