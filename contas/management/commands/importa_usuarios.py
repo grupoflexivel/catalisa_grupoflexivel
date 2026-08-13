@@ -23,7 +23,7 @@ class Command(BaseCommand):
                         nome_completo=row['nome'],
                         password=row['password']
                     )
-                    self.stdout.write(self.style.SUCCESS(f"Usuário {row['username']}"))
+                    self.stdout.write(self.style.SUCCESS(f"Usuário {row['username']} cadastrado com sucesso"))
                 
                 else:
                     self.stdout.write(self.style.WARNING(f"Usuário {row['username']} já existe"))

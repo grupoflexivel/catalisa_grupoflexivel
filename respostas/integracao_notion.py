@@ -2,6 +2,7 @@ import os
 import requests
 from dotenv import load_dotenv
 import logging
+from django.utils import timezone
 from respostas.models import Ideia
 
 load_dotenv()
@@ -31,6 +32,9 @@ def json_envio_ideia(ideia):
 
     if not notion_database_id:
         raise ValueError("NOTION_DATABASE_ID não encontrado no .env")
+
+    #O Notion espera ISO 8601; localtime converte de UTC para America/Sao_Paulo
+    criado_em = timezone.localtime(ideia.criado_em).isoformat(timespec="seconds") if ideia.criado_em else None
 
     url = "https://api.notion.com/v1/pages"
     headers = {
@@ -164,6 +168,12 @@ def json_envio_ideia(ideia):
             "Status da Ideia": {
                 "select": {
                     "name": "Novas"
+                    }
+            },
+
+            "Data": {
+                "date": {
+                    "start": criado_em
                     }
             },
 
