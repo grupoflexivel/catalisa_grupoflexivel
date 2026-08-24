@@ -7,9 +7,11 @@ que os erros aparecem sem recarregar a página e sem perder o que foi digitado.
 <form method="post"
       action="{% url 'cadastrar_ideia' %}"
       id="form-ideia"
+      enctype="multipart/form-data"
       hx-post="{% url 'cadastrar_ideia' %}"
       hx-target="this"
       hx-swap="outerHTML"
+      hx-encoding="multipart/form-data"
       hx-disabled-elt="find button[type=submit]"
       class="grid gap-6">
   {% csrf_token %}
@@ -232,6 +234,29 @@ que os erros aparecem sem recarregar a página e sem perder o que foi digitado.
       </div>
       {% include "partials/_campo.html" with campo=form.valor_estimado_ideia ajuda="Uma estimativa aproximada já ajuda na análise." %}
       {% include "partials/_campo.html" with campo=form.prazo_estimado_ideia ajuda="Pode ser em dias, semanas ou meses." %}
+    </div>
+  </section>
+
+  {# ==================== ETAPA 6 — ANEXOS ==================== #}
+  <section class="exp-surface exp-topline overflow-hidden">
+    <header class="flex items-start gap-4 border-b border-base-300/60 px-6 py-5 sm:px-8">
+      <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-sm font-bold text-primary">06</span>
+      <div class="flex-1">
+        <h2 class="text-lg font-semibold tracking-tight text-primary">Anexos</h2>
+        <p class="mt-0.5 text-sm text-base-content/60">Opcional. Uma foto do problema ou um documento de apoio.</p>
+      </div>
+      <span class="badge badge-ghost hidden rounded-full border-base-300 text-xs font-medium sm:inline-flex">Opcional</span>
+    </header>
+
+    <div class="grid gap-5 px-6 py-6 sm:grid-cols-2 sm:px-8">
+      {% include "partials/_campo.html" with campo=form.fotos %}
+      {% include "partials/_campo.html" with campo=form.documentos %}
+
+      <p class="flex items-start gap-2.5 text-sm text-base-content/60 sm:col-span-2">
+        <svg class="mt-0.5 size-4 shrink-0 text-secondary"><use href="#i-info"/></svg>
+        Uma imagem do local ou do processo costuma explicar o problema mais rápido
+        que um parágrafo. Você pode selecionar vários arquivos de uma vez.
+      </p>
     </div>
   </section>
 

@@ -1,10 +1,56 @@
+from pathlib import Path
+
 from django import forms
 from .models import Ideia, Beneficio
+from .models import DocumentoIdeia, FotoIdeia
+from .validators import (
+    EXTENSOES_DOCUMENTO,
+    EXTENSOES_IMAGEM,
+    MAXIMO_DOCUMENTOS,
+    MAXIMO_FOTOS,
+    valida_extensao_documento,
+    valida_extensao_imagem,
+    valida_tamanho_anexo,
+)
 from contas.models import Usuario
-from catalisa.ui import INPUT_CLASS, SELECT_CLASS, TEXTAREA_CLASS
+from catalisa.ui import FILE_CLASS, INPUT_CLASS, SELECT_CLASS, TEXTAREA_CLASS
 
 # Limite de integrantes adicionais em ideias enviadas por equipe.
 MAXIMO_INTEGRANTES_EQUIPE = 3
+
+
+class MultipleFileInput(forms.ClearableFileInput):
+    """
+    Input de arquivo que aceita seleção múltipla.
+
+    `allow_multiple_selected` é o que faz o Django ler `files.getlist(name)` em
+    vez de `files.get(name)`; sem isso apenas o último arquivo escolhido
+    chegaria à view.
+    """
+
+    allow_multiple_selected = True
+
+
+class MultipleFileField(forms.FileField):
+    """
+    Campo que devolve uma lista de arquivos, validando cada um isoladamente.
+
+    Receita da documentação do Django ("Uploading multiple files"): não existe
+    campo pronto para isso porque `FileField.clean` foi escrito para um arquivo
+    só — aqui ele é aplicado em laço.
+    """
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        limpa_um = super().clean
+
+        if isinstance(data, (list, tuple)):
+            return [limpa_um(arquivo, initial) for arquivo in data]
+
+        return [limpa_um(data, initial)]
 
 
 class IdeiaForm(forms.ModelForm):
@@ -21,6 +67,32 @@ class IdeiaForm(forms.ModelForm):
         label="Autor da ideia",
         empty_label=None,
         widget=forms.RadioSelect(),
+    )
+
+    # Anexos. Ficam fora do Meta porque não são campos do modelo Ideia: cada
+    # arquivo vira uma linha em FotoIdeia/DocumentoIdeia depois que a ideia
+    # ganha um id. `accept` só pré-filtra a janela do sistema operacional —
+    # quem recusa o arquivo é o servidor, em clean_fotos/clean_documentos.
+    fotos = MultipleFileField(
+        required=False,
+        label="Fotos (opcional)",
+        help_text=f"Até {MAXIMO_FOTOS} imagens JPG, PNG ou WEBP de 10 MB cada. "
+                  "Segure Ctrl para escolher várias de uma vez.",
+        widget=MultipleFileInput(attrs={
+            "class": FILE_CLASS,
+            "accept": ",".join(f".{extensao}" for extensao in EXTENSOES_IMAGEM),
+        }),
+    )
+
+    documentos = MultipleFileField(
+        required=False,
+        label="Documentos (opcional)",
+        help_text=f"Até {MAXIMO_DOCUMENTOS} arquivos PDF, Word, Excel, PowerPoint, "
+                  "CSV ou TXT de 10 MB cada.",
+        widget=MultipleFileInput(attrs={
+            "class": FILE_CLASS,
+            "accept": ",".join(f".{extensao}" for extensao in EXTENSOES_DOCUMENTO),
+        }),
     )
 
     class Meta:
@@ -113,6 +185,90 @@ class IdeiaForm(forms.ModelForm):
         # Textos de apoio nas listas suspensas, no lugar do "---------" padrão
         self.fields["unidade_fabril"].empty_label = "Selecione a unidade"
         self.fields["departamento"].empty_label = "Selecione a área"
+
+    def _valida_anexos(self, campo, maximo, validadores, plural):
+        """
+        Aplica o limite de quantidade e os validadores a cada arquivo da lista.
+
+        Os validadores precisam ser chamados à mão: eles moram nos modelos
+        FotoIdeia/DocumentoIdeia, que só serão criados depois — o formulário é
+        a última barreira antes de o arquivo ir para o disco.
+        """
+        arquivos = self.cleaned_data.get(campo) or []
+
+        if len(arquivos) > maximo:
+            raise forms.ValidationError(
+                f"Envie no máximo {maximo} {plural}. Você selecionou {len(arquivos)}."
+            )
+
+        erros = []
+
+        for arquivo in arquivos:
+            for validador in validadores:
+                try:
+                    validador(arquivo)
+                except forms.ValidationError as erro:
+                    # O nome entra na mensagem para o usuário saber qual dos
+                    # arquivos precisa trocar.
+                    erros.extend(f"{arquivo.name}: {mensagem}" for mensagem in erro.messages)
+
+        if erros:
+            raise forms.ValidationError(erros)
+
+        return arquivos
+
+    def clean_fotos(self):
+        return self._valida_anexos(
+            "fotos", MAXIMO_FOTOS, [valida_extensao_imagem, valida_tamanho_anexo], "fotos"
+        )
+
+    def clean_documentos(self):
+        return self._valida_anexos(
+            "documentos", MAXIMO_DOCUMENTOS, [valida_extensao_documento, valida_tamanho_anexo],
+            "documentos",
+        )
+
+    def _cria_anexos(self, ideia):
+        """
+        Cria as linhas de anexo. Só roda depois que a ideia tem `pk`.
+
+        O nome original é guardado aqui porque `upload_to` troca o nome do
+        arquivo por um UUID no momento em que ele vai para o disco.
+        """
+        FotoIdeia.objects.bulk_create([
+            FotoIdeia(ideia=ideia, arquivo=arquivo, nome_original=Path(arquivo.name).name[:255])
+            for arquivo in self.cleaned_data.get("fotos", [])
+        ])
+
+        DocumentoIdeia.objects.bulk_create([
+            DocumentoIdeia(ideia=ideia, arquivo=arquivo, nome_original=Path(arquivo.name).name[:255])
+            for arquivo in self.cleaned_data.get("documentos", [])
+        ])
+
+    def save(self, commit=True):
+        """
+        Salva a ideia e, junto, os anexos.
+
+        Com `commit=False` os anexos entram na fila do `save_m2m()` — mesmo
+        motivo dos ManyToMany: eles precisam de uma ideia já gravada para
+        apontar. Assim a view continua com o fluxo que já tinha (`save(commit=False)`
+        → completa o objeto → `save()` → `save_m2m()`) sem precisar saber que
+        existem anexos.
+        """
+        ideia = super().save(commit=commit)
+
+        if commit:
+            self._cria_anexos(ideia)
+        else:
+            salva_m2m_original = self.save_m2m
+
+            def salva_m2m():
+                salva_m2m_original()
+                self._cria_anexos(ideia)
+
+            self.save_m2m = salva_m2m
+
+        return ideia
 
     def clean_nome_autor(self):
         """

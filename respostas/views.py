@@ -1,19 +1,27 @@
 
 import threading
+from urllib.parse import quote
+
+from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
-from django.http import Http404, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import content_disposition_header
 from catalisa.decorators import acesso_administrador
 from .forms import IdeiaForm
-from .models import Departamento, Ideia, UnidadeFabril
+from .models import Departamento, DocumentoIdeia, FotoIdeia, Ideia, UnidadeFabril
 from django.core.paginator import Paginator
 from respostas.integracao_notion import envia_ideia_para_notion_em_background
 
 # Quantidade de ideias exibidas por página na listagem administrativa.
 IDEIAS_POR_PAGINA = 9
+
+# Tipos aceitos pela rota de anexos. O mapa fechado existe para que o trecho
+# da URL nunca vire uma consulta a um modelo arbitrário.
+MODELOS_DE_ANEXO = {"foto": FotoIdeia, "documento": DocumentoIdeia}
 
 
 def requisicao_htmx(request) -> bool:
@@ -38,7 +46,9 @@ def cadastrar_ideia(request):
     confirmação.
     """
     if request.method == "POST":
-        form = IdeiaForm(request.POST,usuario_logado=request.user)
+        # request.FILES é obrigatório: sem ele o formulário enxerga os campos
+        # de arquivo como vazios e o upload é silenciosamente descartado.
+        form = IdeiaForm(request.POST, request.FILES, usuario_logado=request.user)
         if form.is_valid():
             ideia = form.save(commit=False)
 
@@ -88,7 +98,7 @@ def listar_ideias(request):
     ideias = (
         Ideia.objects
         .select_related("unidade_fabril", "departamento")
-        .prefetch_related("beneficios", "integrantes_equipe")
+        .prefetch_related("beneficios", "integrantes_equipe", "fotos", "documentos")
         .order_by("-criado_em", "-id")
     )
 
@@ -152,11 +162,64 @@ def detalhe_ideia(request, pk):
     ideia = get_object_or_404(
         Ideia.objects
         .select_related("unidade_fabril", "departamento")
-        .prefetch_related("beneficios", "integrantes_equipe"),
+        .prefetch_related("beneficios", "integrantes_equipe", "fotos", "documentos"),
         pk=pk,
     )
 
     return render(request, "partials/_ideia_detalhe.html", {"ideia": ideia})
+
+
+def pode_ver_anexo(usuario, ideia) -> bool:
+    """
+    Administradores veem qualquer anexo; o autor do envio vê os da própria ideia.
+    """
+    if usuario.is_superuser:
+        return True
+
+    return bool(
+        ideia.usuario_remetente_ideia
+        and ideia.usuario_remetente_ideia == str(usuario)
+    )
+
+
+@login_required
+def baixar_anexo_ideia(request, tipo, pk):
+    """
+    Entrega um anexo depois de conferir a permissão de quem pediu.
+
+    Os arquivos não são servidos direto de /media/: quem tiver a URL leria o
+    anexo de qualquer ideia sem passar pelo login. Em produção o nginx faz a
+    entrega via X-Accel-Redirect — o Django decide, o nginx transfere, e o
+    worker do Gunicorn não fica preso empurrando bytes.
+    """
+    modelo = MODELOS_DE_ANEXO.get(tipo)
+
+    if modelo is None:
+        raise Http404("Anexo inexistente")
+
+    anexo = get_object_or_404(modelo.objects.select_related("ideia"), pk=pk)
+
+    if not pode_ver_anexo(request.user, anexo.ideia):
+        # 404 em vez de 403: não confirma para um curioso que o anexo existe.
+        raise Http404("Anexo inexistente")
+
+    # A foto abre na própria página; o documento vai como download.
+    como_anexo = tipo == "documento"
+
+    if settings.DEBUG:
+        # No runserver não existe nginx para receber o X-Accel-Redirect.
+        return FileResponse(
+            anexo.arquivo.open("rb"), as_attachment=como_anexo, filename=anexo.nome_exibido
+        )
+
+    resposta = HttpResponse()
+    # Content-Type vazio faz o nginx aplicar o tipo do arquivo pelo mime.types.
+    del resposta["Content-Type"]
+    resposta["X-Accel-Redirect"] = f"{settings.MEDIA_URL}{quote(anexo.arquivo.name)}"
+    resposta["Content-Disposition"] = content_disposition_header(como_anexo, anexo.nome_exibido)
+    resposta["X-Content-Type-Options"] = "nosniff"
+
+    return resposta
 
 
 def ideia_cadastrada_com_sucesso(request):

@@ -10,6 +10,7 @@ mudança de design não precise ser replicada em cada `forms.py`.
 INPUT_CLASS = "input w-full h-12 rounded-xl bg-base-100 text-base"
 SELECT_CLASS = "select w-full h-12 rounded-xl bg-base-100 text-base"
 TEXTAREA_CLASS = "textarea w-full rounded-xl bg-base-100 text-base leading-relaxed"
+FILE_CLASS = "file-input file-input-bordered w-full h-12 rounded-xl bg-base-100 text-base"
 
 # RadioSelect e CheckboxSelectMultiple repetem o atributo `class` no container
 # e em cada <input>, o que quebraria os componentes do daisyUI. Esses grupos são

@@ -8,5 +8,9 @@ contas/management/commands/*.csv
 # espaço e acento). As cópias usadas pela aplicação estão em static/brand/.
 catalisa/newfrontend/
 
+# Anexos enviados pelos usuários. Em produção ficam no volume
+# `media_volume` do docker-compose, nunca no repositório.
+media/
+
 # Configuração local do Claude Code
 .claude/

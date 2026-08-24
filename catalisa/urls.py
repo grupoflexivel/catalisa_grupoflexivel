@@ -15,9 +15,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
-from respostas.views import cadastrar_ideia, detalhe_ideia, listar_ideias, ideia_cadastrada_com_sucesso
+from respostas.views import (
+    baixar_anexo_ideia,
+    cadastrar_ideia,
+    detalhe_ideia,
+    listar_ideias,
+    ideia_cadastrada_com_sucesso,
+)
 from contas.views import login_view, cadastro_view, ViewTrocaSenhaPrimeiroLogin, resetar_senha_usuario,home
 from django.contrib.auth.views import LogoutView
 
@@ -34,8 +42,14 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     path('ideias/', listar_ideias, name='listar_ideias'),
     path('ideias/<int:pk>/', detalhe_ideia, name='detalhe_ideia'),
+    path('anexos/<str:tipo>/<int:pk>/', baixar_anexo_ideia, name='baixar_anexo_ideia'),
     path('troca_senha/',ViewTrocaSenhaPrimeiroLogin.as_view(), name='troca_senha'),
     path('resetar_senha/', resetar_senha_usuario, name='resetar_senha'),
     path('cadastro_sucesso/',ideia_cadastrada_com_sucesso, name='cadastro_sucesso' ),
     path('', home, name='home')
 ]
+
+# Somente em desenvolvimento: o runserver passa a entregar MEDIA_ROOT em
+# MEDIA_URL. `static()` devolve uma lista vazia quando DEBUG=False, então esta
+# linha nunca expõe nada em produção — lá quem serve é o nginx.
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

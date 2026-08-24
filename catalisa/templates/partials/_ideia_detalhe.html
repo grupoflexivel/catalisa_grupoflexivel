@@ -191,6 +191,53 @@ Carregado sob demanda pelo HTMX no container #exp-modal; o JS do layout abre o
           </div>
         </div>
       </section>
+
+      {% if ideia.tem_anexos %}
+        <div class="my-7 h-px bg-base-300/70"></div>
+
+        <section>
+          <h3 class="flex items-center gap-2.5 text-sm font-semibold uppercase tracking-wider text-primary">
+            <svg class="size-4"><use href="#i-doc"/></svg> Anexos
+          </h3>
+
+          {% if ideia.fotos.all %}
+            <div class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {% for foto in ideia.fotos.all %}
+                {# A URL passa pela view protegida; /media/ é interno no nginx. #}
+                <a href="{% url 'baixar_anexo_ideia' 'foto' foto.id %}"
+                   target="_blank" rel="noopener"
+                   class="exp-lift group block overflow-hidden rounded-2xl border border-base-300/70 bg-base-200/40">
+                  <img src="{% url 'baixar_anexo_ideia' 'foto' foto.id %}"
+                       alt="{{ foto.nome_exibido }}"
+                       loading="lazy"
+                       class="h-32 w-full object-cover">
+                  <span class="flex items-center gap-1.5 px-3 py-2 text-[11px] font-semibold text-base-content/55">
+                    <svg class="size-3"><use href="#i-eye"/></svg>
+                    <span class="truncate">{{ foto.nome_exibido }}</span>
+                  </span>
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          {% if ideia.documentos.all %}
+            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+              {% for documento in ideia.documentos.all %}
+                <a href="{% url 'baixar_anexo_ideia' 'documento' documento.id %}"
+                   class="exp-lift flex items-center gap-3 rounded-2xl border border-base-300/70 bg-base-200/40 p-4">
+                  <span class="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                    <svg class="size-5"><use href="#i-doc"/></svg>
+                  </span>
+                  <span class="min-w-0">
+                    <span class="block truncate text-sm font-semibold">{{ documento.nome_exibido }}</span>
+                    <span class="block text-xs text-base-content/55">{{ documento.tamanho_legivel }} · baixar</span>
+                  </span>
+                </a>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </section>
+      {% endif %}
     </div>
 
     {# ---------- Rodapé ---------- #}

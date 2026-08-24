@@ -133,6 +133,23 @@ STATICFILES_DIRS = [
     BASE_DIR / 'catalisa' / 'static',
 ]
 
+# Arquivos enviados pelos usuários (anexos das ideias)
+# https://docs.djangoproject.com/en/6.0/topics/files/
+#
+# MEDIA_ROOT aponta para o mesmo caminho que o container `web` monta em
+# /app/media e que o nginx serve (volume `media_volume` do docker-compose).
+MEDIA_URL = '/media/'
+
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Uploads acima deste tamanho vão para arquivo temporário em disco em vez de
+# ficarem inteiros na memória do worker do Gunicorn.
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2 * 1024 * 1024
+
+# O padrão do Django depende do umask do processo e pode gerar arquivos sem
+# permissão de leitura para o nginx. Fixar o modo evita "403" intermitente.
+FILE_UPLOAD_PERMISSIONS = 0o644
+
 LOGIN_URL = 'login'
 
 AUTH_USER_MODEL = 'contas.Usuario'
