@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import content_disposition_header
-from catalisa.decorators import acesso_administrador
+from catalisa.decorators import acesso_gestor
 from .forms import IdeiaForm
 from .models import Departamento, DocumentoIdeia, FotoIdeia, Ideia, UnidadeFabril
 from django.core.paginator import Paginator
@@ -81,7 +81,7 @@ def cadastrar_ideia(request):
     return render(request, "cadastrar_ideia.html", {"form": form})
 
 
-@acesso_administrador
+@acesso_gestor
 def listar_ideias(request):
     """
     Lista as ideias cadastradas com busca, filtros e paginação.
@@ -151,7 +151,7 @@ def listar_ideias(request):
     return render(request, "listar_ideias.html", contexto)
 
 
-@acesso_administrador
+@acesso_gestor
 def detalhe_ideia(request, pk):
     """
     Devolve o conteúdo completo de uma ideia para exibição em modal.
@@ -171,9 +171,12 @@ def detalhe_ideia(request, pk):
 
 def pode_ver_anexo(usuario, ideia) -> bool:
     """
-    Administradores veem qualquer anexo; o autor do envio vê os da própria ideia.
+    Quem enxerga a listagem enxerga os anexos dela; o autor vê os da própria ideia.
+
+    A permissão é a mesma que abre a aba de ideias — administrador e gestor
+    passam por aqui pelo mesmo caminho, sem checagem de papel duplicada.
     """
-    if usuario.is_superuser:
+    if usuario.has_perm("respostas.ver_todas_ideias"):
         return True
 
     return bool(

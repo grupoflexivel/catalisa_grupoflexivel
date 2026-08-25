@@ -4,6 +4,9 @@ Documento de referência da camada visual da aplicação. Escrito para que qualq
 pessoa (ou sessão) consiga continuar o trabalho sem precisar reconstruir o
 raciocínio por trás das decisões.
 
+Guia de revisão das entregas recentes (anexos, permissões): ver
+[EXPLICACOES.md](EXPLICACOES.md).
+
 Última reformulação completa: **31/07/2026**.
 
 ---

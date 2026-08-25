@@ -91,6 +91,12 @@ class Ideia(models.Model):
     class Meta:
         verbose_name = "Ideia"
         verbose_name_plural = "Ideias cadastradas"
+        # Permissão própria, e não a `view_ideia` que o Django cria sozinho:
+        # aquela governa a visualização no admin do Django, esta governa a aba
+        # da aplicação. Separadas, uma pode ser concedida sem arrastar a outra.
+        permissions = [
+            ("ver_todas_ideias", "Pode ver todas as ideias enviadas"),
+        ]
 
     id = models.AutoField(primary_key=True)
     nome_autor = models.CharField(max_length=125)

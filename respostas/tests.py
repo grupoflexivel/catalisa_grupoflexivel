@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -176,3 +177,92 @@ class UploadAnexosTest(TestCase):
         self.assertEqual(FotoIdeia.objects.count(), 0)
         self.assertEqual(DocumentoIdeia.objects.count(), 0)
         self.assertFalse(any(caminho.exists() for caminho in caminhos))
+
+
+class AcessoGestorTest(TestCase):
+    """
+    Permissão granular da aba de ideias.
+    """
+
+    def setUp(self):
+        Usuario = get_user_model()
+        self.comum = Usuario.objects.create_user(
+            username="ana", password="x", nome_completo="Ana Silva", must_change_password=False
+        )
+        self.gestor = Usuario.objects.create_user(
+            username="gil", password="x", nome_completo="Gil Souza", must_change_password=False
+        )
+        self.gestor.groups.add(Group.objects.get(name="Gestores"))
+
+        self.admin = Usuario.objects.create_superuser(
+            username="root", password="x", nome_completo="Raiz", must_change_password=False
+        )
+
+    def test_grupo_criado_pela_migracao_ja_tem_a_permissao(self):
+        grupo = Group.objects.get(name="Gestores")
+        self.assertTrue(
+            grupo.permissions.filter(codename="ver_todas_ideias").exists()
+        )
+
+    def test_colaborador_comum_nao_entra(self):
+        self.client.force_login(self.comum)
+        resposta = self.client.get(reverse("listar_ideias"))
+        self.assertEqual(resposta.status_code, 302)
+        self.assertIn(reverse("login"), resposta["Location"])
+
+    def test_gestor_entra(self):
+        self.client.force_login(self.gestor)
+        self.assertEqual(self.client.get(reverse("listar_ideias")).status_code, 200)
+
+    def test_administrador_continua_entrando_sem_estar_no_grupo(self):
+        self.assertFalse(self.admin.groups.exists())
+        self.client.force_login(self.admin)
+        self.assertEqual(self.client.get(reverse("listar_ideias")).status_code, 200)
+
+    def test_gestor_abre_o_modal_de_detalhe(self):
+        ideia = _ideia_minima(self.comum)
+        self.client.force_login(self.gestor)
+        resposta = self.client.get(reverse("detalhe_ideia", args=[ideia.pk]))
+        self.assertEqual(resposta.status_code, 200)
+
+    def test_gestor_baixa_anexo_de_ideia_alheia(self):
+        # A ideia é de um terceiro: se fosse da `comum`, ela passaria pela regra
+        # "o autor vê os próprios anexos" e o teste não provaria nada.
+        ideia = _ideia_minima(self.admin)
+        foto = FotoIdeia.objects.create(ideia=ideia, arquivo=imagem())
+
+        self.client.force_login(self.gestor)
+        url = reverse("baixar_anexo_ideia", args=["foto", foto.pk])
+        self.assertEqual(self.client.get(url).status_code, 200)
+
+        # Já um colaborador sem a permissão continua barrado.
+        self.client.force_login(self.comum)
+        self.assertEqual(self.client.get(url).status_code, 404)
+
+    def test_aba_aparece_no_menu_so_para_quem_tem_a_permissao(self):
+        # O href completo, e não só a URL: `/ideias/` também é prefixo de
+        # `/ideias/cadastro/`, o link "Nova ideia" que todo mundo enxerga.
+        link = f'href="{reverse("listar_ideias")}"'
+
+        self.client.force_login(self.comum)
+        self.assertNotContains(self.client.get(reverse("cadastrar_ideia")), link)
+
+        self.client.force_login(self.gestor)
+        self.assertContains(self.client.get(reverse("cadastrar_ideia")), link)
+
+
+def _ideia_minima(autor):
+    """Ideia enviada por `autor`, com o mínimo de campos obrigatórios."""
+    return Ideia.objects.create(
+        nome_autor=autor.nome_completo,
+        unidade_fabril=UnidadeFabril.objects.create(nome="Planta 2"),
+        departamento=Departamento.objects.create(nome="Qualidade"),
+        forma_de_participacao="IND",
+        titulo="Ideia de teste",
+        descricao_problema="a", impacto_problema="b", causa_problema="c",
+        descricao_ideia="d", como_a_ideia_resolve_problema="e",
+        participacao_implementacao="Sim",
+        ganhos_esperados="f", necessidades_ideia="g",
+        valor_estimado_ideia="R$ 1", prazo_estimado_ideia="1 dia",
+        usuario_remetente_ideia=str(autor),
+    )
